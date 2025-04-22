@@ -2,173 +2,216 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-  <title>Interactive Mobile Pokédex</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Simple Mobile Pokédex</title>
   <style>
-    /* Full‑screen, no scroll */
-    html, body { margin:0; padding:0; height:100%; overflow:hidden; }
-    #canvas-container { position:relative; width:100%; height:100%; }
-    /* Transparent canvas so you can change body bg */
-    canvas { background:transparent; touch-action:none; }
-    /* Bottom‑sheet styling (plain‑bottom‑sheet‑core defaults) */
-    .pbs-backdrop { background: rgba(0,0,0,0.2); }
-    .pbs-content { padding:1rem; font-family:sans-serif; }
-    .pbs-handle { width:40px; height:4px; background:#ccc; border-radius:2px; margin:0.25rem auto; }
-    /* Info panel typography */
-    #sheet h2 { margin-top:0; text-transform: capitalize; }
-    #sheet ul { padding-left:1.2rem; margin:0.5rem 0; }
-    #sheet li { margin:0.2rem 0; }
-    /* File‑picker button */
-    #upload-btn {
-      position: absolute; top:1rem; right:1rem;
-      background: rgba(0,0,0,0.5); color:#fff;
-      border:none; padding:0.5rem; border-radius:5px;
-      font-size:0.9rem; z-index:10;
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      display: flex; flex-direction: column;
+      font-family: sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      overflow: hidden;
     }
+    #viewer {
+      position: relative;
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff;
+    }
+    #sprite, #overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(0deg);
+      touch-action: none;
+      user-select: none;
+    }
+    #controls {
+      padding: 0.5rem;
+      display: flex; flex-wrap: wrap;
+      align-items: center; justify-content: space-around;
+      background: #e0e0e0;
+    }
+    #controls button, #controls input[type="file"] {
+      font-size: 1rem; padding: 0.5rem;
+    }
+    #rotate {
+      width: 40%;
+    }
+    #info {
+      padding: 0.5rem;
+      background: #fff;
+      overflow-y: auto;
+      max-height: 40%;
+      border-top: 1px solid #ccc;
+    }
+    #info h2 { margin: 0.2rem 0; text-transform: capitalize; }
+    #info ul { margin: 0.2rem 0; padding-left: 1.2rem; }
+    #info li { margin: 0.1rem 0; }
   </style>
-
-  <!-- Core libraries from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-  <link  href="https://unpkg.com/plain-bottom-sheet-core@1.0.0/dist/plain-bottom-sheet-core.min.css" rel="stylesheet"/>
-  <script src="https://unpkg.com/plain-bottom-sheet-core@1.0.0/dist/plain-bottom-sheet-core.min.js"></script>
 </head>
 <body>
-  <!-- Canvas Container -->
-  <div id="canvas-container">
-    <canvas id="c"></canvas>
-    <button id="upload-btn">+ Overlay</button>
+
+  <div id="viewer">
+    <img id="sprite" src="" alt="Pokémon" width="200">
+    <img id="overlay" src="" alt="" width="100" style="display:none; cursor:grab;">
   </div>
 
-  <!-- Bottom Sheet (hidden by default) -->
-  <div id="sheet">
-    <div class="pbs-handle"></div>
-    <div class="pbs-content">
-      <h2 id="name"></h2>
-      <p id="flavor"></p>
-      <div><strong>Types:</strong> <span id="types"></span></div>
-      <div><strong>Stats:</strong> <span id="stats"></span></div>
-      <div><strong>Moves:</strong>
-        <ul id="moves"></ul>
-      </div>
-      <div><strong>Evolutions:</strong>
-        <ul id="evo"></ul>
-      </div>
-    </div>
+  <div id="controls">
+    <button id="prev">◀️ Prev</button>
+    <button id="next">Next ▶️</button>
+    <input type="file" id="upload" accept="image/*">
+    <input type="range" id="rotate" min="0" max="360" value="0">
+  </div>
+
+  <div id="info">
+    <h2 id="name"></h2>
+    <div><strong>Types:</strong> <span id="types"></span></div>
+    <div><strong>Flavor:</strong> <p id="flavor" style="margin:0.2rem 0;"></p></div>
+    <div><strong>Stats:</strong> <span id="stats"></span></div>
+    <div><strong>Moves:</strong><ul id="moves"></ul></div>
+    <div><strong>Evolutions:</strong><ul id="evo"></ul></div>
   </div>
 
   <script>
-  (async function(){
-    // 1) Initialize Fabric Canvas
-    const canvas = new fabric.Canvas('c', { preserveObjectStacking: true });
-    window.addEventListener('resize', resizeCanvas);
-    function resizeCanvas(){
-      canvas.setWidth(window.innerWidth);
-      canvas.setHeight(window.innerHeight);
-      canvas.renderAll();
+  (function(){
+    let currentId = 1;
+    const maxId = 1010;
+    const spriteEl = document.getElementById('sprite');
+    const overlayEl = document.getElementById('overlay');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const uploadIn = document.getElementById('upload');
+    const rotateIn = document.getElementById('rotate');
+
+    const nameEl = document.getElementById('name');
+    const typesEl = document.getElementById('types');
+    const flavorEl = document.getElementById('flavor');
+    const statsEl = document.getElementById('stats');
+    const movesEl = document.getElementById('moves');
+    const evoEl = document.getElementById('evo');
+
+    function clamp(v, min, max) {
+      return Math.min(Math.max(v, min), max);
     }
-    resizeCanvas();
 
-    // 2) Fetch Pokémon #1 (Bulbasaur) as default—you can change `id` or add a selector
-    const id = 1;
-    const p     = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
-    const sp    = await fetch(p.species.url).then(r=>r.json());
+    async function loadPokemon(id) {
+      try {
+        const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r => r.json());
+        const sp = await fetch(p.species.url).then(r => r.json());
 
-    // 3) Load sprite onto canvas
-    const imgObj = await new Promise(res=>{
-      fabric.Image.fromURL(p.sprites.front_default, img=>{
-        img.set({
-          left: canvas.width/2,
-          top:  canvas.height/3,
-          originX: 'center',
-          originY: 'center',
-          selectable: true
+        spriteEl.src = p.sprites.front_default;
+        rotateIn.value = 0;
+        spriteEl.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+        overlayEl.style.display = 'none';
+
+        nameEl.textContent = `#${p.id} ${p.name}`;
+        typesEl.textContent = p.types.map(t => t.type.name).join(', ');
+
+        const ft = sp.flavor_text_entries.find(e => e.language.name === 'en');
+        flavorEl.textContent = ft ? ft.flavor_text.replace(/[\n\f]/g, ' ') : 'No description.';
+
+        statsEl.textContent = p.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(' | ');
+
+        movesEl.innerHTML = '';
+        p.moves.slice(0, 5).forEach(m => {
+          const li = document.createElement('li');
+          li.textContent = m.move.name;
+          movesEl.appendChild(li);
         });
-        res(img);
-      });
-    });
-    canvas.add(imgObj).setActiveObject(imgObj);
 
-    // 4) Enable touch gestures via Hammer.js
-    const hm = new Hammer(canvas.upperCanvasEl);
-    hm.get('pinch').set({ enable:true });
-    hm.on('pinch pinchmove rotate pan', ev => {
-      const obj = canvas.getActiveObject();
-      if (!obj) return;
-      if (ev.type.startsWith('pinch')){
-        obj.scale(ev.scale);
+        evoEl.innerHTML = '';
+        const chain = await fetch(sp.evolution_chain.url).then(r => r.json());
+        (function traverse(node) {
+          const li = document.createElement('li');
+          li.textContent = node.species.name;
+          evoEl.appendChild(li);
+          node.evolves_to.forEach(traverse);
+        })(chain.chain);
+      } catch (err) {
+        nameEl.textContent = 'Error loading Pokémon.';
+        console.error('Error:', err);
       }
-      if (ev.type === 'rotate'){
-        obj.set('angle', ev.rotation);
-      }
-      if (ev.type === 'pan'){
-        obj.set({
-          left: obj.left + ev.deltaX,
-          top:  obj.top  + ev.deltaY
-        });
-        hm.get('pan').set({ deltaX:0, deltaY:0 });
-      }
-      canvas.renderAll();
-    });
+    }
 
-    // 5) Upload overlay images
-    document.getElementById('upload-btn').onclick = ()=>{
-      const inp = document.createElement('input');
-      inp.type = 'file';
-      inp.accept = 'image/*';
-      inp.onchange = e=>{
-        const file = e.target.files[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        fabric.Image.fromURL(url, img=>{
-          img.set({
-            left:  canvas.width/2,
-            top:   canvas.height/2,
-            originX:'center',
-            originY:'center',
-            scaleX:0.5,
-            scaleY:0.5
-          });
-          canvas.add(img).setActiveObject(img);
-          canvas.renderAll();
-        });
-      };
-      inp.click();
+    prevBtn.onclick = () => {
+      currentId = clamp(currentId - 1, 1, maxId);
+      loadPokemon(currentId);
+    };
+    nextBtn.onclick = () => {
+      currentId = clamp(currentId + 1, 1, maxId);
+      loadPokemon(currentId);
     };
 
-    // 6) Prepare Bottom Sheet info
-    const sheet = new PlainBottomSheetCore('#sheet');
-    document.getElementById('name').textContent = `#${p.id} ${p.name}`;
-    // Flavor text (first English entry)
-    document.getElementById('flavor').textContent = 
-      sp.flavor_text_entries.find(f=>f.language.name==='en').flavor_text.replace(/\n|\f/g,' ');
-    // Types
-    document.getElementById('types').textContent = p.types.map(t=>t.type.name).join(', ');
-    // Stats
-    document.getElementById('stats').textContent = 
-      p.stats.map(s=>`${s.stat.name}:${s.base_stat}`).join('  ');
-    // Moves (first 10)
-    p.moves.slice(0,10).forEach(m=>{
-      const li = document.createElement('li');
-      li.textContent = m.move.name;
-      document.getElementById('moves').append(li);
-    });
-    // Evolution chain
-    const evoChainData = await fetch(sp.evolution_chain.url).then(r=>r.json());
-    const evoNames = [];
-    (function recurse(node){
-      evoNames.push(node.species.name);
-      node.evolves_to.forEach(recurse);
-    })(evoChainData.chain);
-    evoNames.forEach(name=>{
-      const li = document.createElement('li');
-      li.textContent = name;
-      document.getElementById('evo').append(li);
+    rotateIn.oninput = e => {
+      const deg = e.target.value;
+      spriteEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
+      if (overlayEl.style.display !== 'none') {
+        overlayEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
+      }
+    };
+
+    uploadIn.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      overlayEl.src = url;
+      overlayEl.style.display = 'block';
+      overlayEl.style.left = '50%';
+      overlayEl.style.top = '50%';
+      overlayEl.style.transform = spriteEl.style.transform;
+    };
+
+    // Mouse + Touch Drag
+    let isDragging = false, startX = 0, startY = 0, offsetX = 0, offsetY = 0;
+
+    function startDrag(x, y) {
+      isDragging = true;
+      const rect = overlayEl.getBoundingClientRect();
+      offsetX = rect.left - x;
+      offsetY = rect.top - y;
+      overlayEl.style.cursor = 'grabbing';
+    }
+
+    function onDragMove(x, y) {
+      if (!isDragging) return;
+      overlayEl.style.left = `${x + offsetX}px`;
+      overlayEl.style.top = `${y + offsetY}px`;
+    }
+
+    overlayEl.addEventListener('mousedown', e => {
+      startDrag(e.clientX, e.clientY);
     });
 
-    // 7) Show sheet on canvas tap
-    canvas.on('mouse:down', ()=> sheet.show());
+    document.addEventListener('mousemove', e => {
+      onDragMove(e.clientX, e.clientY);
+    });
 
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        overlayEl.style.cursor = 'grab';
+      }
+    });
+
+    // Mobile Touch Support
+    overlayEl.addEventListener('touchstart', e => {
+      const touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+    });
+
+    overlayEl.addEventListener('touchmove', e => {
+      const touch = e.touches[0];
+      onDragMove(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    overlayEl.addEventListener('touchend', () => {
+      isDragging = false;
+      overlayEl.style.cursor = 'grab';
+    });
+
+    loadPokemon(currentId);
   })();
   </script>
 </body>
