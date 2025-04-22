@@ -17,127 +17,125 @@
       --text: #333;
       --font: 'Press Start 2P', cursive;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
     html, body {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      background: var(--bg-light);
-      color: var(--text);
-      font-family: var(--font);
+      width:100%; height:100%;
+      display:flex; flex-direction:column;
+      background:var(--bg-light);
+      color:var(--text);
+      font-family:var(--font);
     }
-    button, input { font-family: var(--font); }
+    button, input { font-family:var(--font); }
 
     /* Header & Dropdown */
-    #header-container { position: relative; user-select: none; }
+    #header-container { position:relative; user-select:none; }
     #ribbon {
-      background: var(--red); color: #fff; padding: 0.5rem;
-      text-align: center; font-size: 0.75rem;
-      border-bottom: 4px solid var(--dark-red); cursor: pointer;
+      background:var(--red); color:#fff; padding:0.5rem;
+      text-align:center; font-size:0.75rem;
+      border-bottom:4px solid var(--dark-red); cursor:pointer;
     }
     #ribbon svg {
-      width: 0.8rem; vertical-align: middle; margin-left: 0.4rem;
-      fill: #fff; transition: transform 0.2s;
+      width:0.8rem; vertical-align:middle; margin-left:0.4rem;
+      fill:#fff; transition:transform 0.2s;
     }
-    #header-container.open #ribbon svg { transform: rotate(180deg); }
+    #header-container.open #ribbon svg { transform:rotate(180deg); }
     #dropdown {
-      position: absolute; top: 100%; left: 0; right: 0;
-      background: var(--bg-panel); border: 2px solid var(--dark-red);
-      max-height: 240px; overflow-y: auto;
-      display: none; z-index: 20;
+      position:absolute; top:100%; left:0; right:0;
+      background:var(--bg-panel); border:2px solid var(--dark-red);
+      max-height:240px; overflow-y:auto;
+      display:none; z-index:20;
     }
-    #header-container.open #dropdown { display: block; }
+    #header-container.open #dropdown { display:block; }
     #filterInput {
-      width: 96%; margin: 0.5rem auto; padding: 0.4rem;
-      font-size: 0.9rem; display: block;
+      width:96%; margin:0.5rem auto; padding:0.4rem;
+      font-size:0.9rem; display:block;
     }
-    #pokeList { list-style: none; }
+    #pokeList { list-style:none; }
     #pokeList li {
-      padding: 0.4rem 0.6rem; border-top: 1px solid #ddd;
-      cursor: pointer;
+      padding:0.4rem 0.6rem; border-top:1px solid #ddd;
+      cursor:pointer;
     }
-    #pokeList li:hover { background: #eee; }
+    #pokeList li:hover { background:#eee; }
 
     /* Viewer */
     #viewer {
-      flex: 1; background: var(--bg-panel);
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
+      flex:1; background:var(--bg-panel);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
     }
-    #sprite-container {
-      width: 300px; height: 300px; perspective: 800px;
-    }
+    #sprite-container { width:300px; height:300px; perspective:800px; }
     .sprite {
-      width: 100%; height: 100%;
-      position: relative; transform-style: preserve-3d;
-      transition: transform 0.6s;
+      width:100%; height:100%;
+      position:relative; transform-style:preserve-3d;
+      transition:transform 0.6s;
     }
-    .sprite.flipped { transform: rotateY(180deg); }
+    .sprite.flipped { transform:rotateY(180deg); }
     .sprite img {
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
-      backface-visibility: hidden; image-rendering: pixelated;
+      position:absolute; top:0; left:0;
+      width:100%; height:100%;
+      backface-visibility:hidden; image-rendering:pixelated;
     }
-    #back { transform: rotateY(180deg); }
+    #back { transform:rotateY(180deg); }
 
     /* Spinner */
     #spinner {
-      position: absolute; width: 48px; height: 48px;
-      background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      animation: spin 1s linear infinite; display: none; z-index: 10;
+      position:absolute; width:48px; height:48px;
+      background:url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
+      animation:spin 1s linear infinite; display:none; z-index:10;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
     /* Controls */
     #controls {
-      background: #eee;
-      display: flex; justify-content: center; align-items: center;
-      gap: 4px; padding: 0.4rem;
+      background:#eee;
+      display:flex; justify-content:center; align-items:center;
+      gap:4px; padding:0.4rem;
     }
     .control-btn, .pokeball-btn {
-      font-size: 0.6rem; padding: 0.5rem 0.8rem;
-      background: #fdfdfd; border: 2px solid var(--border);
-      cursor: pointer; user-select: none;
+      font-size:0.6rem; padding:0.5rem 0.8rem;
+      background:#fdfdfd; border:2px solid var(--border);
+      cursor:pointer; user-select:none;
     }
-    .control-btn:disabled { opacity: 0.5; cursor: default; }
-    .control-btn:hover:not(:disabled) { background: var(--hover); }
+    .control-btn:disabled { opacity:0.5; cursor:default; }
+    .control-btn:hover:not(:disabled) { background:var(--hover); }
     .pokeball-btn {
-      width: 36px; height: 36px;
-      background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
+      width:36px; height:36px;
+      background:url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
     }
-    .pokeball-btn:hover { background-color: var(--hover); }
+    .pokeball-btn:hover { background-color:var(--hover); }
 
     /* Info Panel */
     #info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem; padding: 1rem;
-      background: var(--bg-panel);
-      border-top: 2px solid #ccc;
-      overflow-y: auto; max-height: 40%;
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+      gap:1rem; padding:1rem;
+      background:var(--bg-panel);
+      border-top:2px solid #ccc;
+      overflow-y:auto; max-height:40%;
     }
     .info-card {
-      background: var(--bg-card);
-      border-radius: 6px; padding: 0.75rem;
-      box-shadow: inset 0 0 0 1px #ddd;
+      background:var(--bg-card);
+      border-radius:6px; padding:0.75rem;
+      box-shadow:inset 0 0 0 1px #ddd;
     }
     .info-card h3 {
-      margin-bottom: 0.5rem; font-size: 0.9rem;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom:0.5rem; font-size:0.9rem;
+      text-transform:uppercase; letter-spacing:0.5px;
     }
     .info-card p, .info-card ul {
-      font-size: 0.85rem; line-height: 1.4;
+      font-size:0.85rem; line-height:1.4;
     }
-    .info-card ul { list-style: disc inside; margin: 0; padding-left: 1rem; }
-    .info-card li + li { margin-top: 0.3rem; }
+    .info-card ul { list-style:disc inside; margin:0; padding-left:1rem; }
+    .info-card li + li { margin-top:0.3rem; }
     .link-button {
-      background: none; border: none; padding: 0;
-      color: var(--dark-red); text-decoration: underline;
-      cursor: pointer; font-family: var(--font); font-size: 0.85rem;
+      background:none; border:none; padding:0;
+      color:var(--dark-red); text-decoration:underline;
+      cursor:pointer; font-family:var(--font); font-size:0.85rem;
     }
     .error-banner {
-      grid-column: 1 / -1; background: #fdd; color: #900;
-      padding: 0.5rem; text-align: center; border: 1px solid #900;
-      border-radius: 4px;
+      grid-column:1 / -1; background:#fdd; color:#900;
+      padding:0.5rem; text-align:center; border:1px solid #900;
+      border-radius:4px;
     }
   </style>
 </head>
@@ -171,34 +169,16 @@
   </div>
 
   <div id="info">
-    <div class="info-card lore">
-      <h3>Lore</h3>
-      <p id="lore-text"></p>
-    </div>
-    <div class="info-card details">
-      <h3>Details</h3>
-      <ul id="details-list"></ul>
-    </div>
-    <div class="info-card stats">
-      <h3>Base Stats</h3>
-      <ul id="stats-list"></ul>
-    </div>
-    <div class="info-card moves">
-      <h3>Common Moves</h3>
-      <ul id="moves-list"></ul>
-    </div>
-    <div class="info-card evolutions">
-      <h3>Evolutions</h3>
-      <ul id="evo-list"></ul>
-    </div>
+    <div class="info-card lore"><h3>Lore</h3><p id="lore-text"></p></div>
+    <div class="info-card details"><h3>Details</h3><ul id="details-list"></ul></div>
+    <div class="info-card stats"><h3>Base Stats</h3><ul id="stats-list"></ul></div>
+    <div class="info-card moves"><h3>Common Moves</h3><ul id="moves-list"></ul></div>
+    <div class="info-card evolutions"><h3>Evolutions</h3><ul id="evo-list"></ul></div>
     <div class="info-card matchups">
       <h3>Matchups</h3>
-      <strong>Weaknesses:</strong>
-      <ul id="weaknesses-list"></ul>
-      <strong>Resistances:</strong>
-      <ul id="resistances-list"></ul>
-      <strong>Immunities:</strong>
-      <ul id="immunities-list"></ul>
+      <strong>Weaknesses:</strong><ul id="weaknesses-list"></ul>
+      <strong>Resistances:</strong><ul id="resistances-list"></ul>
+      <strong>Immunities:</strong><ul id="immunities-list"></ul>
     </div>
   </div>
 
@@ -206,8 +186,11 @@
   (function(){
     const maxId = 1010;
     let currentId = 1, pokemonList = [], searchDebounce;
+    const pokemonCache = new Map();
+    const speciesCache = new Map();
+    const typeDataCache = new Map();
 
-    // Elements
+    // Element refs
     const headerContainer = document.getElementById('header-container');
     const ribbon          = document.getElementById('ribbon');
     const dropdown        = document.getElementById('dropdown');
@@ -231,11 +214,11 @@
     const btnRandom       = document.getElementById('random');
 
     function setControlsDisabled(val) {
-      [btnPrev,btnNext,btnFlip,btnRandom].forEach(b=>b.disabled = val);
+      [btnPrev, btnNext, btnFlip, btnRandom].forEach(b => b.disabled = val);
       ribbon.setAttribute('aria-disabled', val);
     }
 
-    // Ribbon toggle
+    // Ribbon dropdown
     ribbon.addEventListener('click', e => {
       e.stopPropagation();
       const open = headerContainer.classList.toggle('open');
@@ -248,7 +231,7 @@
       ribbon.setAttribute('aria-expanded', 'false');
     });
 
-    // Debounced search
+    // Debounced filter
     filterInput.addEventListener('input', () => {
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(populateList, 200);
@@ -273,18 +256,18 @@
       loadPokemon(currentId = id);
     }
 
-    // Controls
+    // Control buttons
     btnPrev.onclick   = () => loadPokemon(currentId > 1 ? --currentId : currentId = maxId);
     btnNext.onclick   = () => loadPokemon(currentId < maxId ? ++currentId : currentId = 1);
     btnFlip.onclick   = () => spriteWrap.classList.toggle('flipped');
     btnRandom.onclick = () => loadPokemon(currentId = Math.floor(Math.random() * maxId) + 1);
 
-    // Preload
+    // Preload name list
     async function preloadList() {
       try {
         const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
         const data = await res.json();
-        pokemonList = data.results.map((p,i) => ({name: p.name, id: i+1}));
+        pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
         populateList();
       } catch {
         showError('Failed to load Pokémon list.');
@@ -375,30 +358,55 @@
       ul.appendChild(li);
     }
 
+    // Prefetch helper
+    async function prefetchPokemon(id) {
+      if (id < 1 || id > maxId) return;
+      if (!pokemonCache.has(id)) {
+        const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+        pokemonCache.set(id, p);
+      }
+      if (!speciesCache.has(id)) {
+        const sp = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then(r=>r.json());
+        speciesCache.set(id, sp);
+      }
+    }
+
+    // Load Pokémon with caching & prefetch
     async function loadPokemon(id) {
       setControlsDisabled(true);
       spriteWrap.classList.remove('flipped');
       spinner.style.display = 'block';
       ribbon.firstChild.nodeValue = 'Loading… ';
-      try {
-        const [p, sp] = await Promise.all([
-          fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json()),
-          fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then(r=>r.json())
-        ]);
 
+      let p, sp;
+      try {
+        if (pokemonCache.has(id)) {
+          p = pokemonCache.get(id);
+        } else {
+          p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+          pokemonCache.set(id, p);
+        }
+        if (speciesCache.has(id)) {
+          sp = speciesCache.get(id);
+        } else {
+          sp = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then(r=>r.json());
+          speciesCache.set(id, sp);
+        }
+
+        // Sprites & title
         frontImg.src = p.sprites.front_default || '';
         backImg.src  = p.sprites.back_default  || '';
         ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
 
         // Lore
-        const loreEn = sp.flavor_text_entries.filter(e => e.language.name === 'en');
-        const chosen = loreEn.find(e => ['red','blue'].includes(e.version.name)) || loreEn[0];
+        const loreEn = sp.flavor_text_entries.filter(e=>e.language.name==='en');
+        const chosen = loreEn.find(e=>['red','blue'].includes(e.version.name)) || loreEn[0];
         loreText.textContent = chosen?.flavor_text.replace(/[\n\f]/g,' ') || 'No lore available.';
 
         // Details
         detailsList.innerHTML = '';
-        appendDetail('Types', p.types.map(t => t.type.name), makeTypeBadge);
-        const gen = genYearMap[sp.generation.name] || {n: sp.generation.name, y: '?'};
+        appendDetail('Types', p.types.map(t=>t.type.name), makeTypeBadge);
+        const gen = genYearMap[sp.generation.name] || {n:sp.generation.name, y:'?'};
         appendDetail('Generation', `${gen.n} (${gen.y})`);
         appendDetail('Habitat', sp.habitat?.name || 'Unknown');
         appendDetail('Capture Rate', sp.capture_rate);
@@ -416,7 +424,7 @@
         // Evolutions
         evoList.innerHTML = '';
         const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
-        (function walk(node) {
+        (function walk(node){
           const li = document.createElement('li');
           const btn = document.createElement('button');
           btn.className = 'link-button';
@@ -428,23 +436,32 @@
           node.evolves_to.forEach(walk);
         })(chain.chain);
 
-        // Matchups
-        const mult = Object.fromEntries(allTypes.map(t => [t, 1]));
-        const typeData = await Promise.all(p.types.map(t => fetch(t.type.url).then(r=>r.json())));
-        typeData.forEach(td => {
-          td.damage_relations.double_damage_from.forEach(d => mult[d.name] *= 2);
-          td.damage_relations.half_damage_from.forEach(d => mult[d.name] *= 0.5);
-          td.damage_relations.no_damage_from.forEach(d => mult[d.name] *= 0);
-        });
+        // Matchups with typeData caching
+        const mult = Object.fromEntries(allTypes.map(t=>[t,1]));
+        await Promise.all(p.types.map(async t => {
+          const typeName = t.type.name;
+          let td = typeDataCache.get(typeName);
+          if (!td) {
+            td = await fetch(t.type.url).then(r=>r.json());
+            typeDataCache.set(typeName, td);
+          }
+          td.damage_relations.double_damage_from.forEach(d=> mult[d.name]*=2);
+          td.damage_relations.half_damage_from.forEach(d=> mult[d.name]*=0.5);
+          td.damage_relations.no_damage_from.forEach(d=> mult[d.name]*=0);
+        }));
         const weak = [], resist = [], immune = [];
-        for (const [t, m] of Object.entries(mult)) {
-          if (m === 0) immune.push(t);
-          else if (m > 1) weak.push(t);
-          else if (m < 1) resist.push(t);
+        for (const [t,m] of Object.entries(mult)) {
+          if (m===0) immune.push(t);
+          else if (m>1) weak.push(t);
+          else if (m<1) resist.push(t);
         }
         renderMatchupList(weakList, weak);
         renderMatchupList(resistList, resist);
         renderMatchupList(immuneList, immune);
+
+        // Prefetch neighbors
+        prefetchPokemon(id+1);
+        prefetchPokemon(id-1);
 
       } catch {
         showError('Failed to load Pokémon data.');
@@ -455,8 +472,10 @@
       }
     }
 
+    // Initialize
     preloadList();
     loadPokemon(currentId);
+
   })();
   </script>
 </body>
