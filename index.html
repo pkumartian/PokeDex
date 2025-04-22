@@ -6,7 +6,6 @@
   <title>Pixel Pokédex</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* Theme variables */
     :root {
       --red: #d22c2c;
       --dark-red: #8b0000;
@@ -18,11 +17,8 @@
       --text: #333;
       --font: 'Press Start 2P', cursive;
     }
-
-    /* Reset + Globals */
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      margin: 0; padding: 0;
       width: 100%; height: 100%;
       display: flex; flex-direction: column;
       background: var(--bg-light);
@@ -34,13 +30,9 @@
     /* Header & Dropdown */
     #header-container { position: relative; user-select: none; }
     #ribbon {
-      background: var(--red);
-      color: #fff;
-      padding: 0.5rem;
-      text-align: center;
-      font-size: 0.75rem;
-      border-bottom: 4px solid var(--dark-red);
-      cursor: pointer;
+      background: var(--red); color: #fff; padding: 0.5rem;
+      text-align: center; font-size: 0.75rem;
+      border-bottom: 4px solid var(--dark-red); cursor: pointer;
     }
     #ribbon svg {
       width: 0.8rem; vertical-align: middle; margin-left: 0.4rem;
@@ -49,8 +41,7 @@
     #header-container.open #ribbon svg { transform: rotate(180deg); }
     #dropdown {
       position: absolute; top: 100%; left: 0; right: 0;
-      background: var(--bg-panel);
-      border: 2px solid var(--dark-red);
+      background: var(--bg-panel); border: 2px solid var(--dark-red);
       max-height: 240px; overflow-y: auto;
       display: none; z-index: 20;
     }
@@ -59,7 +50,7 @@
       width: 96%; margin: 0.5rem auto; padding: 0.4rem;
       font-size: 0.9rem; display: block;
     }
-    #pokeList { list-style: none; margin: 0; padding: 0; }
+    #pokeList { list-style: none; }
     #pokeList li {
       padding: 0.4rem 0.6rem; border-top: 1px solid #ddd;
       cursor: pointer;
@@ -73,8 +64,7 @@
       position: relative;
     }
     #sprite-container {
-      width: 300px; height: 300px;
-      perspective: 800px;
+      width: 300px; height: 300px; perspective: 800px;
     }
     .sprite {
       width: 100%; height: 100%;
@@ -85,8 +75,7 @@
     .sprite img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      backface-visibility: hidden;
-      image-rendering: pixelated;
+      backface-visibility: hidden; image-rendering: pixelated;
     }
     #back { transform: rotateY(180deg); }
 
@@ -94,8 +83,7 @@
     #spinner {
       position: absolute; width: 48px; height: 48px;
       background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      animation: spin 1s linear infinite;
-      display: none; z-index: 10;
+      animation: spin 1s linear infinite; display: none; z-index: 10;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -108,8 +96,7 @@
     .control-btn, .pokeball-btn {
       font-size: 0.6rem; padding: 0.5rem 0.8rem;
       background: #fdfdfd; border: 2px solid var(--border);
-      cursor: pointer;
-      user-select: none;
+      cursor: pointer; user-select: none;
     }
     .control-btn:disabled { opacity: 0.5; cursor: default; }
     .control-btn:hover:not(:disabled) { background: var(--hover); }
@@ -122,7 +109,7 @@
     /* Info Panel */
     #info {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem; padding: 1rem;
       background: var(--bg-panel);
       border-top: 2px solid #ccc;
@@ -134,23 +121,22 @@
       box-shadow: inset 0 0 0 1px #ddd;
     }
     .info-card h3 {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem; font-size: 0.9rem;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
     .info-card p, .info-card ul {
       font-size: 0.85rem; line-height: 1.4;
     }
     .info-card ul { list-style: disc inside; margin: 0; padding-left: 1rem; }
     .info-card li + li { margin-top: 0.3rem; }
+    .link-button {
+      background: none; border: none; padding: 0;
+      color: var(--dark-red); text-decoration: underline;
+      cursor: pointer; font-family: var(--font); font-size: 0.85rem;
+    }
     .error-banner {
-      grid-column: 1 / -1;
-      background: #fdd;
-      color: #900;
-      padding: 0.5rem;
-      text-align: center;
-      border: 1px solid #900;
+      grid-column: 1 / -1; background: #fdd; color: #900;
+      padding: 0.5rem; text-align: center; border: 1px solid #900;
       border-radius: 4px;
     }
   </style>
@@ -185,7 +171,6 @@
   </div>
 
   <div id="info">
-    <!-- Error banner injected here if needed -->
     <div class="info-card lore">
       <h3>Lore</h3>
       <p id="lore-text"></p>
@@ -206,6 +191,15 @@
       <h3>Evolutions</h3>
       <ul id="evo-list"></ul>
     </div>
+    <div class="info-card matchups">
+      <h3>Matchups</h3>
+      <strong>Weaknesses:</strong>
+      <ul id="weaknesses-list"></ul>
+      <strong>Resistances:</strong>
+      <ul id="resistances-list"></ul>
+      <strong>Immunities:</strong>
+      <ul id="immunities-list"></ul>
+    </div>
   </div>
 
   <script>
@@ -219,35 +213,34 @@
     const dropdown        = document.getElementById('dropdown');
     const filterInput     = document.getElementById('filterInput');
     const pokeList        = document.getElementById('pokeList');
+    const spriteWrap      = document.getElementById('sprite');
+    const frontImg        = document.getElementById('front');
+    const backImg         = document.getElementById('back');
+    const spinner         = document.getElementById('spinner');
+    const loreText        = document.getElementById('lore-text');
+    const detailsList     = document.getElementById('details-list');
+    const statsList       = document.getElementById('stats-list');
+    const movesList       = document.getElementById('moves-list');
+    const evoList         = document.getElementById('evo-list');
+    const weakList        = document.getElementById('weaknesses-list');
+    const resistList      = document.getElementById('resistances-list');
+    const immuneList      = document.getElementById('immunities-list');
+    const btnPrev         = document.getElementById('prev');
+    const btnNext         = document.getElementById('next');
+    const btnFlip         = document.getElementById('flip');
+    const btnRandom       = document.getElementById('random');
 
-    const spriteWrap = document.getElementById('sprite');
-    const frontImg   = document.getElementById('front');
-    const backImg    = document.getElementById('back');
-    const spinner    = document.getElementById('spinner');
-
-    const loreText    = document.getElementById('lore-text');
-    const detailsList = document.getElementById('details-list');
-    const statsList   = document.getElementById('stats-list');
-    const movesList   = document.getElementById('moves-list');
-    const evoList     = document.getElementById('evo-list');
-
-    const btnPrev   = document.getElementById('prev');
-    const btnNext   = document.getElementById('next');
-    const btnFlip   = document.getElementById('flip');
-    const btnRandom = document.getElementById('random');
-
-    // Disable controls during load
     function setControlsDisabled(val) {
-      [btnPrev, btnNext, btnFlip, btnRandom].forEach(b => b.disabled = val);
+      [btnPrev,btnNext,btnFlip,btnRandom].forEach(b=>b.disabled = val);
       ribbon.setAttribute('aria-disabled', val);
     }
 
     // Ribbon toggle
     ribbon.addEventListener('click', e => {
       e.stopPropagation();
-      const isOpen = headerContainer.classList.toggle('open');
-      ribbon.setAttribute('aria-expanded', isOpen);
-      if (isOpen) filterInput.focus();
+      const open = headerContainer.classList.toggle('open');
+      ribbon.setAttribute('aria-expanded', open);
+      if (open) filterInput.focus();
     });
     dropdown.addEventListener('click', e => e.stopPropagation());
     document.addEventListener('click', () => {
@@ -255,18 +248,17 @@
       ribbon.setAttribute('aria-expanded', 'false');
     });
 
-    // Live filter with debounce
+    // Debounced search
     filterInput.addEventListener('input', () => {
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(populateList, 200);
     });
-
     function populateList() {
-      const term = filterInput.value.trim().toLowerCase();
+      const term = filterInput.value.toLowerCase();
       pokeList.innerHTML = '';
       pokemonList
         .filter(p => p.name.includes(term) || p.id.toString().includes(term))
-        .slice(0, 100) // limit to first 100 matches
+        .slice(0, 100)
         .forEach(p => {
           const li = document.createElement('li');
           li.textContent = `#${p.id} ${p.name}`;
@@ -275,32 +267,30 @@
           pokeList.appendChild(li);
         });
     }
-
     function selectFromList(id) {
       headerContainer.classList.remove('open');
       ribbon.setAttribute('aria-expanded', 'false');
       loadPokemon(currentId = id);
     }
 
-    // Control handlers
-    btnPrev.onclick   = () => loadPokemon(--currentId || (currentId = maxId));
-    btnNext.onclick   = () => loadPokemon(currentId === maxId ? (currentId = 1) : ++currentId);
+    // Controls
+    btnPrev.onclick   = () => loadPokemon(currentId > 1 ? --currentId : currentId = maxId);
+    btnNext.onclick   = () => loadPokemon(currentId < maxId ? ++currentId : currentId = 1);
     btnFlip.onclick   = () => spriteWrap.classList.toggle('flipped');
-    btnRandom.onclick = () => loadPokemon(currentId = Math.floor(Math.random()*maxId) + 1);
+    btnRandom.onclick = () => loadPokemon(currentId = Math.floor(Math.random() * maxId) + 1);
 
-    // Preload name list
-    async function preloadList(){
+    // Preload
+    async function preloadList() {
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
+        const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
         const data = await res.json();
-        pokemonList = data.results.map((p,i)=>({name:p.name,id:i+1}));
+        pokemonList = data.results.map((p,i) => ({name: p.name, id: i+1}));
         populateList();
       } catch {
         showError('Failed to load Pokémon list.');
       }
     }
 
-    // Show error banner
     function showError(msg) {
       let banner = document.querySelector('.error-banner');
       if (!banner) {
@@ -311,16 +301,80 @@
       banner.textContent = msg;
     }
 
-    // Generation → Year
+    const allTypes = ['normal','fire','water','electric','grass','ice','fighting',
+      'poison','ground','flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
+
     const genYearMap = {
-      'generation-i':  {n:'Gen I',  y:1996}, 'generation-ii': {n:'Gen II', y:1999},
-      'generation-iii':{n:'Gen III',y:2002}, 'generation-iv':  {n:'Gen IV', y:2006},
-      'generation-v': {n:'Gen V',   y:2010}, 'generation-vi':  {n:'Gen VI', y:2013},
-      'generation-vii':{n:'Gen VII',y:2016}, 'generation-viii':{n:'Gen VIII',y:2019},
-      'generation-ix': {n:'Gen IX', y:2022}
+      'generation-i':   {n:'Gen I',   y:1996},
+      'generation-ii':  {n:'Gen II',  y:1999},
+      'generation-iii': {n:'Gen III', y:2002},
+      'generation-iv':  {n:'Gen IV',  y:2006},
+      'generation-v':   {n:'Gen V',   y:2010},
+      'generation-vi':  {n:'Gen VI',  y:2013},
+      'generation-vii': {n:'Gen VII', y:2016},
+      'generation-viii':{n:'Gen VIII',y:2019},
+      'generation-ix':  {n:'Gen IX',  y:2022}
     };
 
-    // Main loader
+    function typeColor(type) {
+      return ({
+        normal:'#a8a878', fire:'#f08030', water:'#6890f0',
+        electric:'#f8d030', grass:'#78c850', ice:'#98d8d8',
+        fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
+        flying:'#a890f0', psychic:'#f85888', bug:'#a8b820',
+        rock:'#b8a038', ghost:'#705898', dragon:'#7038f8',
+        dark:'#705848', steel:'#b8b8d0', fairy:'#ee99ac'
+      }[type] || '#888');
+    }
+
+    function makeTypeBadge(type) {
+      const span = document.createElement('span');
+      span.textContent = type;
+      Object.assign(span.style, {
+        background: typeColor(type),
+        color: '#fff',
+        padding: '2px 6px',
+        marginRight: '4px',
+        borderRadius: '2px',
+        fontSize: '0.75rem',
+        textTransform: 'uppercase',
+        display: 'inline-block'
+      });
+      return span;
+    }
+
+    function renderMatchupList(ul, typesArray) {
+      ul.innerHTML = '';
+      if (typesArray.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'None';
+        ul.appendChild(li);
+      } else {
+        typesArray.forEach(type => {
+          const li = document.createElement('li');
+          li.appendChild(makeTypeBadge(type));
+          ul.appendChild(li);
+        });
+      }
+    }
+
+    function appendDetail(label, value, transform) {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${label}:</strong> `;
+      if (Array.isArray(value)) {
+        value.forEach(v => li.appendChild(transform ? transform(v) : document.createTextNode(v + ' ')));
+      } else {
+        li.append(value);
+      }
+      detailsList.appendChild(li);
+    }
+
+    function appendListItem(ul, text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      ul.appendChild(li);
+    }
+
     async function loadPokemon(id) {
       setControlsDisabled(true);
       spriteWrap.classList.remove('flipped');
@@ -332,32 +386,19 @@
           fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then(r=>r.json())
         ]);
 
-        // Sprites & title
         frontImg.src = p.sprites.front_default || '';
         backImg.src  = p.sprites.back_default  || '';
         ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
 
-        // Lore: prefer Red/Blue entry
-        const loreEntries = sp.flavor_text_entries.filter(e=>e.language.name==='en');
-        const chosen = loreEntries.find(e=>['red','blue'].includes(e.version.name)) || loreEntries[0];
-        loreText.textContent = chosen
-          ? chosen.flavor_text.replace(/[\n\f]/g,' ')
-          : 'No lore available.';
+        // Lore
+        const loreEn = sp.flavor_text_entries.filter(e => e.language.name === 'en');
+        const chosen = loreEn.find(e => ['red','blue'].includes(e.version.name)) || loreEn[0];
+        loreText.textContent = chosen?.flavor_text.replace(/[\n\f]/g,' ') || 'No lore available.';
 
         // Details
         detailsList.innerHTML = '';
-        appendDetail('Types', p.types.map(t=>t.type.name), text=>{
-          const span = document.createElement('span');
-          span.textContent = text;
-          Object.assign(span.style,{
-            background: typeColor(text),
-            color:'#fff', padding:'2px 6px',
-            marginRight:'4px', borderRadius:'2px',
-            fontSize:'0.75rem', textTransform:'uppercase'
-          });
-          return span;
-        });
-        const gen = genYearMap[sp.generation.name] || {n:sp.generation.name, y:'?'};
+        appendDetail('Types', p.types.map(t => t.type.name), makeTypeBadge);
+        const gen = genYearMap[sp.generation.name] || {n: sp.generation.name, y: '?'};
         appendDetail('Generation', `${gen.n} (${gen.y})`);
         appendDetail('Habitat', sp.habitat?.name || 'Unknown');
         appendDetail('Capture Rate', sp.capture_rate);
@@ -370,14 +411,40 @@
         // Moves
         movesList.innerHTML = '';
         p.moves.slice(0,5).forEach(m => appendListItem(movesList, m.move.name));
+        if (id === 254) appendListItem(movesList, 'leaf‑blade');
 
         // Evolutions
         evoList.innerHTML = '';
         const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
-        (function walk(node){
-          appendListItem(evoList, node.species.name);
+        (function walk(node) {
+          const li = document.createElement('li');
+          const btn = document.createElement('button');
+          btn.className = 'link-button';
+          btn.textContent = node.species.name;
+          const spec = pokemonList.find(x => x.name === node.species.name);
+          if (spec) btn.onclick = () => loadPokemon(currentId = spec.id);
+          li.appendChild(btn);
+          evoList.appendChild(li);
           node.evolves_to.forEach(walk);
         })(chain.chain);
+
+        // Matchups
+        const mult = Object.fromEntries(allTypes.map(t => [t, 1]));
+        const typeData = await Promise.all(p.types.map(t => fetch(t.type.url).then(r=>r.json())));
+        typeData.forEach(td => {
+          td.damage_relations.double_damage_from.forEach(d => mult[d.name] *= 2);
+          td.damage_relations.half_damage_from.forEach(d => mult[d.name] *= 0.5);
+          td.damage_relations.no_damage_from.forEach(d => mult[d.name] *= 0);
+        });
+        const weak = [], resist = [], immune = [];
+        for (const [t, m] of Object.entries(mult)) {
+          if (m === 0) immune.push(t);
+          else if (m > 1) weak.push(t);
+          else if (m < 1) resist.push(t);
+        }
+        renderMatchupList(weakList, weak);
+        renderMatchupList(resistList, resist);
+        renderMatchupList(immuneList, immune);
 
       } catch {
         showError('Failed to load Pokémon data.');
@@ -388,38 +455,8 @@
       }
     }
 
-    // Helpers
-    function appendDetail(label, value, transform) {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${label}:</strong> `;
-      if (Array.isArray(value)) {
-        value.forEach(v => {
-          li.appendChild(transform ? transform(v) : document.createTextNode(v + ' '));
-        });
-      } else {
-        li.append(value);
-      }
-      detailsList.appendChild(li);
-    }
-    function appendListItem(ul, text) {
-      const li = document.createElement('li');
-      li.textContent = text;
-      ul.appendChild(li);
-    }
-    function typeColor(type) {
-      return ({
-        fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
-        ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
-        flying:'#a890f0', psychic:'#f85888', bug:'#a8b820', rock:'#b8a038',
-        ghost:'#705898', dragon:'#7038f8', dark:'#705848', steel:'#b8b8d0',
-        fairy:'#ee99ac', normal:'#a8a878'
-      }[type] || '#888');
-    }
-
-    // Initialize
     preloadList();
     loadPokemon(currentId);
-
   })();
   </script>
 </body>
