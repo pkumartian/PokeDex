@@ -6,7 +6,7 @@
   <title>Pixel Pokédex</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* Global & Layout */
+    /* Reset & global */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
@@ -15,8 +15,13 @@
       font-family: 'Press Start 2P', cursive;
       color: #333;
     }
-    #ribbon {
+
+    /* Header + dropdown */
+    #header-container {
       position: relative;
+      user-select: none;
+    }
+    #ribbon {
       background: #d22c2c;
       color: #fff;
       text-align: center;
@@ -24,50 +29,58 @@
       font-size: 0.75rem;
       border-bottom: 4px solid #8b0000;
       cursor: pointer;
-      user-select: none;
     }
+    #ribbon svg {
+      width: 0.8rem;
+      vertical-align: middle;
+      margin-left: 0.4rem;
+      fill: #fff;
+      transition: transform 0.2s;
+    }
+    #header-container.open #ribbon svg { transform: rotate(180deg); }
+
     #dropdown {
-      display: none;
       position: absolute;
       top: 100%; left: 0; right: 0;
-      max-height: 240px;
-      overflow-y: auto;
       background: #fff;
       border: 2px solid #8b0000;
+      max-height: 240px;
+      overflow-y: auto;
       font-family: sans-serif;
-      z-index: 10;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 20;
     }
-    #dropdown input {
+    #header-container.open #dropdown { display: block; }
+
+    #filterInput {
       width: 96%;
       margin: 0.5rem auto;
       padding: 0.4rem;
       display: block;
       font-size: 0.9rem;
     }
-    #dropdown ul {
+    #pokeList {
       list-style: none;
     }
-    #dropdown li {
+    #pokeList li {
       padding: 0.4rem 0.6rem;
       border-top: 1px solid #ddd;
       cursor: pointer;
-      font-size: 0.85rem;
     }
-    #dropdown li:hover {
+    #pokeList li:hover {
       background: #eee;
     }
 
+    /* Viewer */
     #viewer {
       flex: 1;
       background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       position: relative;
     }
     #sprite-container {
-      width: 300px;
-      height: 300px;
+      width: 300px; height: 300px;
       perspective: 800px;
     }
     .sprite {
@@ -78,29 +91,29 @@
     }
     .sprite.flipped { transform: rotateY(180deg); }
     .sprite img {
-      width: 100%; height: 100%;
       position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
       backface-visibility: hidden;
       image-rendering: pixelated;
     }
     #back { transform: rotateY(180deg); }
 
+    /* Spinner */
     #spinner {
       position: absolute;
       width: 48px; height: 48px;
-      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Pok%C3%A9_Ball_icon.png') center/contain no-repeat;
+      background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
       animation: spin 1s linear infinite;
       display: none;
+      z-index: 10;
     }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Controls */
     #controls {
       background: #eee;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      padding: 0.4rem;
+      display: flex; justify-content: center; align-items: center;
+      gap: 4px; padding: 0.4rem;
     }
     .control-btn {
       font-family: 'Press Start 2P', cursive;
@@ -109,14 +122,13 @@
       background: #fdfdfd;
       border: 2px solid #555;
       cursor: pointer;
-      user-select: none;
     }
     .control-btn:hover {
       background: #ffcccc;
     }
     .pokeball-btn {
       width: 36px; height: 36px;
-      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Pok%C3%A9_Ball_icon.png') center/contain no-repeat;
+      background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
       border: 2px solid #555;
       cursor: pointer;
     }
@@ -124,6 +136,7 @@
       background-color: #ffcccc;
     }
 
+    /* Info panel */
     #info {
       background: #fff;
       border-top: 2px solid #ccc;
@@ -149,13 +162,11 @@
     }
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(80px,1fr));
       gap: 4px;
       margin: 0.4rem 0 0.8rem;
     }
-    .stats-grid div {
-      font-size: 0.85rem;
-    }
+    .stats-grid div { font-size: 0.85rem; }
     #moves, #evo {
       margin-left: 1rem;
       margin-bottom: 0.6rem;
@@ -166,11 +177,15 @@
     }
   </style>
 </head>
-<body>
 
-  <div id="ribbon">Loading… 
+<body>
+  <div id="header-container">
+    <div id="ribbon">
+      Loading… 
+      <svg viewBox="0 0 10 6"><path d="M0,0 L5,6 L10,0 Z"/></svg>
+    </div>
     <div id="dropdown">
-      <input type="text" id="filterInput" placeholder="Search Pokémon…">
+      <input id="filterInput" placeholder="Search Pokémon…" />
       <ul id="pokeList"></ul>
     </div>
   </div>
@@ -179,8 +194,8 @@
     <div id="spinner"></div>
     <div id="sprite-container">
       <div class="sprite" id="sprite">
-        <img id="front" src="" alt="Front">
-        <img id="back" src="" alt="Back">
+        <img id="front" src="" alt="Front Sprite"/>
+        <img id="back" src="" alt="Back Sprite"/>
       </div>
     </div>
   </div>
@@ -189,7 +204,7 @@
     <button class="control-btn" id="prev">&lt; Prev</button>
     <button class="control-btn" id="flip">Flip</button>
     <button class="control-btn" id="next">Next &gt;</button>
-    <button class="pokeball-btn" id="random" aria-label="Random Pokémon"></button>
+    <div class="pokeball-btn" id="random" title="Random Pokémon"></div>
   </div>
 
   <div id="info">
@@ -208,133 +223,146 @@
   </div>
 
   <script>
-    (function(){
-      let currentId = 1, pokemonList = [];
-      const maxId = 1010;
+  (function(){
+    let currentId = 1, pokemonList = [];
+    const maxId = 1010;
 
-      const ribbon     = document.getElementById('ribbon');
-      const dropdown   = document.getElementById('dropdown');
-      const filterInput= document.getElementById('filterInput');
-      const pokeList   = document.getElementById('pokeList');
+    const headerContainer = document.getElementById('header-container');
+    const ribbon  = document.getElementById('ribbon');
+    const dropdown= document.getElementById('dropdown');
+    const filterInput = document.getElementById('filterInput');
+    const pokeList= document.getElementById('pokeList');
 
-      const spriteWrap = document.getElementById('sprite');
-      const frontImg   = document.getElementById('front');
-      const backImg    = document.getElementById('back');
-      const spinner    = document.getElementById('spinner');
+    const spriteWrap = document.getElementById('sprite');
+    const frontImg   = document.getElementById('front');
+    const backImg    = document.getElementById('back');
+    const spinner    = document.getElementById('spinner');
 
-      const nameEl     = document.getElementById('name');
-      const typesEl    = document.getElementById('types');
-      const flavorEl   = document.getElementById('flavor');
-      const statsEl    = document.getElementById('stats');
-      const movesEl    = document.getElementById('moves');
-      const evoEl      = document.getElementById('evo');
+    const nameEl     = document.getElementById('name');
+    const typesEl    = document.getElementById('types');
+    const flavorEl   = document.getElementById('flavor');
+    const statsEl    = document.getElementById('stats');
+    const movesEl    = document.getElementById('moves');
+    const evoEl      = document.getElementById('evo');
 
-      document.getElementById('prev').onclick = () => {
-        currentId = currentId > 1 ? currentId - 1 : maxId;
-        loadPokemon(currentId);
-      };
-      document.getElementById('next').onclick = () => {
-        currentId = currentId < maxId ? currentId + 1 : 1;
-        loadPokemon(currentId);
-      };
-      document.getElementById('flip').onclick = () => {
-        spriteWrap.classList.toggle('flipped');
-      };
-      document.getElementById('random').onclick = () => {
-        currentId = Math.floor(Math.random() * maxId) + 1;
-        loadPokemon(currentId);
-      };
-
-      ribbon.onclick = () => {
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        filterInput.focus();
-      };
-      filterInput.oninput = () => {
-        const term = filterInput.value.toLowerCase();
-        pokeList.innerHTML = '';
-        pokemonList
-          .filter(p => p.name.includes(term) || p.id.toString().includes(term))
-          .forEach(p => {
-            const li = document.createElement('li');
-            li.textContent = `#${p.id} ${p.name}`;
-            li.onclick = () => {
-              currentId = p.id;
-              dropdown.style.display = 'none';
-              loadPokemon(currentId);
-            };
-            pokeList.appendChild(li);
-          });
-      };
-
-      async function preloadList() {
-        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=' + maxId);
-        const data = await res.json();
-        pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
-        filterInput.dispatchEvent(new Event('input'));
-      }
-
-      async function loadPokemon(id) {
-        spinner.style.display = 'block';
-        ribbon.textContent = 'Loading…';
-        spriteWrap.classList.remove('flipped');
-        try {
-          const p  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
-          const sp = await fetch(p.species.url).then(r=>r.json());
-          frontImg.src = p.sprites.front_default || '';
-          backImg.src  = p.sprites.back_default  || '';
-          ribbon.textContent = `#${p.id} — ${p.name.toUpperCase()}`;
-          typesEl.innerHTML = '';
-          p.types.forEach(t => {
-            const span = document.createElement('span');
-            span.style.background = typeColor(t.type.name);
-            span.textContent = t.type.name;
-            typesEl.appendChild(span);
-          });
-          const entry = sp.flavor_text_entries.find(e => e.language.name==='en');
-          flavorEl.textContent = entry
-            ? entry.flavor_text.replace(/[\n\f]/g,' ') 
-            : 'No lore available.';
-          statsEl.innerHTML = '';
-          p.stats.forEach(s => {
-            const d = document.createElement('div');
-            d.textContent = `${s.stat.name}: ${s.base_stat}`;
-            statsEl.appendChild(d);
-          });
-          movesEl.innerHTML = '';
-          p.moves.slice(0,5).forEach(m => {
-            const li = document.createElement('li');
-            li.textContent = m.move.name;
-            movesEl.appendChild(li);
-          });
-          evoEl.innerHTML = '';
-          const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
-          (function walk(node){
-            const li = document.createElement('li');
-            li.textContent = node.species.name;
-            evoEl.appendChild(li);
-            node.evolves_to.forEach(walk);
-          })(chain.chain);
-        } catch {
-          ribbon.textContent = 'Error loading.';
-        } finally {
-          spinner.style.display = 'none';
-        }
-      }
-
-      function typeColor(type) {
-        const colors = {
-          fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
-          ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
-          flying:'#a890f0', psychic:'#f85888', bug:'#a8b820', rock:'#b8a038',
-          ghost:'#705898', dragon:'#7038f8', dark:'#705848', steel:'#b8b8d0',
-          fairy:'#ee99ac', normal:'#a8a878'
-        };
-        return colors[type] || '#888';
-      }
-
-      preloadList();
+    document.getElementById('prev').onclick = () => {
+      currentId = currentId > 1 ? currentId - 1 : maxId;
       loadPokemon(currentId);
-    })();
+    };
+    document.getElementById('next').onclick = () => {
+      currentId = currentId < maxId ? currentId + 1 : 1;
+      loadPokemon(currentId);
+    };
+    document.getElementById('flip').onclick = () => {
+      spriteWrap.classList.toggle('flipped');
+    };
+    document.getElementById('random').onclick = () => {
+      currentId = Math.floor(Math.random() * maxId) + 1;
+      loadPokemon(currentId);
+    };
+
+    ribbon.onclick = e => {
+      e.stopPropagation();
+      headerContainer.classList.toggle('open');
+      if (headerContainer.classList.contains('open')) filterInput.focus();
+    };
+    document.addEventListener('click', () => {
+      headerContainer.classList.remove('open');
+    });
+
+    filterInput.oninput = () => {
+      const term = filterInput.value.toLowerCase();
+      pokeList.innerHTML = '';
+      pokemonList
+        .filter(p => p.name.includes(term) || p.id.toString().includes(term))
+        .forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = `#${p.id} ${p.name}`;
+          li.onclick = () => {
+            currentId = p.id;
+            headerContainer.classList.remove('open');
+            loadPokemon(currentId);
+          };
+          pokeList.appendChild(li);
+        });
+    };
+
+    async function preloadList(){
+      const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
+      const data = await res.json();
+      pokemonList = data.results.map((p,i)=>({ name:p.name, id:i+1 }));
+      filterInput.dispatchEvent(new Event('input'));
+    }
+
+    async function loadPokemon(id){
+      spinner.style.display = 'block';
+      ribbon.childNodes[0].nodeValue = 'Loading… ';
+      spriteWrap.classList.remove('flipped');
+      try {
+        const p  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+        const sp = await fetch(p.species.url).then(r=>r.json());
+
+        frontImg.src = p.sprites.front_default || '';
+        backImg.src  = p.sprites.back_default  || '';
+        ribbon.childNodes[0].nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
+
+        typesEl.innerHTML = '';
+        p.types.forEach(t => {
+          const span = document.createElement('span');
+          span.style.background = typeColor(t.type.name);
+          span.textContent = t.type.name;
+          typesEl.appendChild(span);
+        });
+
+        const entry = sp.flavor_text_entries.find(e=>e.language.name==='en');
+        flavorEl.textContent = entry
+          ? entry.flavor_text.replace(/[\n\f]/g,' ')
+          : 'No lore available.';
+
+        statsEl.innerHTML = '';
+        p.stats.forEach(s => {
+          const d = document.createElement('div');
+          d.textContent = `${s.stat.name}: ${s.base_stat}`;
+          statsEl.appendChild(d);
+        });
+
+        movesEl.innerHTML = '';
+        p.moves.slice(0,5).forEach(m => {
+          const li = document.createElement('li');
+          li.textContent = m.move.name;
+          movesEl.appendChild(li);
+        });
+
+        evoEl.innerHTML = '';
+        const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
+        (function walk(node){
+          const li = document.createElement('li');
+          li.textContent = node.species.name;
+          evoEl.appendChild(li);
+          node.evolves_to.forEach(walk);
+        })(chain.chain);
+
+      } catch {
+        ribbon.childNodes[0].nodeValue = 'Error loading.';
+      } finally {
+        spinner.style.display = 'none';
+      }
+    }
+
+    function typeColor(type){
+      const colors = {
+        fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
+        ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
+        flying:'#a890f0', psychic:'#f85888', bug:'#a8b820', rock:'#b8a038',
+        ghost:'#705898', dragon:'#7038f8', dark:'#705848', steel:'#b8b8d0',
+        fairy:'#ee99ac', normal:'#a8a878'
+      };
+      return colors[type] || '#888';
+    }
+
+    preloadList();
+    loadPokemon(currentId);
+  })();
   </script>
 </body>
 </html>
