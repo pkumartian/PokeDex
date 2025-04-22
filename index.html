@@ -166,6 +166,7 @@
     <button class="control-btn" id="flip" aria-label="Flip sprite">Flip</button>
     <button class="control-btn" id="next" aria-label="Next Pokémon">Next &gt;</button>
     <button class="control-btn pokeball-btn" id="random" aria-label="Random Pokémon"></button>
+    <button class="control-btn" id="share" aria-label="Share Pokémon">Share</button>
   </div>
 
   <div id="info">
@@ -190,7 +191,6 @@
     const speciesCache = new Map();
     const typeDataCache = new Map();
 
-    // Element refs
     const headerContainer = document.getElementById('header-container');
     const ribbon          = document.getElementById('ribbon');
     const dropdown        = document.getElementById('dropdown');
@@ -212,13 +212,13 @@
     const btnNext         = document.getElementById('next');
     const btnFlip         = document.getElementById('flip');
     const btnRandom       = document.getElementById('random');
+    const btnShare        = document.getElementById('share');
 
     function setControlsDisabled(val) {
-      [btnPrev, btnNext, btnFlip, btnRandom].forEach(b => b.disabled = val);
+      [btnPrev, btnNext, btnFlip, btnRandom, btnShare].forEach(b => b.disabled = val);
       ribbon.setAttribute('aria-disabled', val);
     }
 
-    // Ribbon & dropdown
     ribbon.addEventListener('click', e => {
       e.stopPropagation();
       const open = headerContainer.classList.toggle('open');
@@ -231,7 +231,6 @@
       ribbon.setAttribute('aria-expanded', 'false');
     });
 
-    // Debounced filter (no more 100-limit)
     filterInput.addEventListener('input', () => {
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(populateList, 200);
@@ -255,13 +254,20 @@
       loadPokemon(currentId = id);
     }
 
-    // Control handlers
     btnPrev.onclick   = () => loadPokemon(currentId > 1 ? --currentId : currentId = maxId);
     btnNext.onclick   = () => loadPokemon(currentId < maxId ? ++currentId : currentId = 1);
     btnFlip.onclick   = () => spriteWrap.classList.toggle('flipped');
     btnRandom.onclick = () => loadPokemon(currentId = Math.floor(Math.random() * maxId) + 1);
+    btnShare.onclick  = () => {
+      const shareUrl = `${location.origin}${location.pathname}#${currentId}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+        alert('Share link copied:\n' + shareUrl);
+      } else {
+        prompt('Copy this link to share:', shareUrl);
+      }
+    };
 
-    // Preload names
     async function preloadList() {
       try {
         const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
@@ -357,7 +363,6 @@
       ul.appendChild(li);
     }
 
-    // Prefetch helper
     async function prefetchPokemon(id) {
       if (id < 1 || id > maxId) return;
       if (!pokemonCache.has(id)) {
@@ -370,7 +375,6 @@
       }
     }
 
-    // Main loader
     async function loadPokemon(id) {
       setControlsDisabled(true);
       spriteWrap.classList.remove('flipped');
@@ -400,14 +404,14 @@
           backImg.src = '';
           btnFlip.style.display = 'none';
         }
-        ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
 
-        // Lore
+        ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
+        location.hash = `#${p.id}`;
+
         const loreEn = sp.flavor_text_entries.filter(e=>e.language.name==='en');
         const chosen = loreEn.find(e=>['red','blue'].includes(e.version.name)) || loreEn[0];
         loreText.textContent = chosen?.flavor_text.replace(/[\n\f]/g,' ') || 'No lore available.';
 
-        // Details
         detailsList.innerHTML = '';
         appendDetail('Types', p.types.map(t=>t.type.name), makeTypeBadge);
         const gen = genYearMap[sp.generation.name] || {n:sp.generation.name, y:'?'};
@@ -416,16 +420,13 @@
         appendDetail('Capture Rate', sp.capture_rate);
         appendDetail('Happiness', sp.base_happiness);
 
-        // Stats
         statsList.innerHTML = '';
         p.stats.forEach(s => appendListItem(statsList, `${s.stat.name}: ${s.base_stat}`));
 
-        // Moves
         movesList.innerHTML = '';
         p.moves.slice(0,5).forEach(m => appendListItem(movesList, m.move.name));
-        if (id === 254) appendListItem(movesList, 'leaf‑blade');
+        if (id === 254) appendListItem(movesList, 'leaf-blade');
 
-        // Evolutions
         evoList.innerHTML = '';
         const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
         (function walk(node){
@@ -440,7 +441,6 @@
           node.evolves_to.forEach(walk);
         })(chain.chain);
 
-        // Matchups
         const mult = Object.fromEntries(allTypes.map(t=>[t,1]));
         await Promise.all(p.types.map(async t=>{
           const typeName = t.type.name;
@@ -463,7 +463,6 @@
         renderMatchupList(resistList, resist);
         renderMatchupList(immuneList, immune);
 
-        // Prefetch neighbors
         prefetchPokemon(id+1);
         prefetchPokemon(id-1);
 
@@ -476,7 +475,10 @@
       }
     }
 
-    // Initialize
+    // Initialize with hash if present
+    const initialHash = parseInt(location.hash.slice(1));
+    if (initialHash && initialHash >= 1 && initialHash <= maxId) currentId = initialHash;
+
     preloadList();
     loadPokemon(currentId);
 
