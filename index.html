@@ -6,25 +6,40 @@
   <title>Pixel Pokédex</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* Reset & globals */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      background: #f2f2f2;
-      font-family: 'Press Start 2P', cursive;
-      color: #333;
+    /* Theme variables */
+    :root {
+      --red: #d22c2c;
+      --dark-red: #8b0000;
+      --bg-light: #f2f2f2;
+      --bg-card: #f9f9f9;
+      --bg-panel: #fff;
+      --border: #555;
+      --hover: #ffcccc;
+      --text: #333;
+      --font: 'Press Start 2P', cursive;
     }
 
-    /* Header + dropdown */
+    /* Reset + Globals */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      background: var(--bg-light);
+      color: var(--text);
+      font-family: var(--font);
+    }
+    button, input { font-family: var(--font); }
+
+    /* Header & Dropdown */
     #header-container { position: relative; user-select: none; }
     #ribbon {
-      background: #d22c2c;
+      background: var(--red);
       color: #fff;
-      text-align: center;
       padding: 0.5rem;
+      text-align: center;
       font-size: 0.75rem;
-      border-bottom: 4px solid #8b0000;
+      border-bottom: 4px solid var(--dark-red);
       cursor: pointer;
     }
     #ribbon svg {
@@ -32,21 +47,19 @@
       fill: #fff; transition: transform 0.2s;
     }
     #header-container.open #ribbon svg { transform: rotate(180deg); }
-
     #dropdown {
       position: absolute; top: 100%; left: 0; right: 0;
-      background: #fff; border: 2px solid #8b0000;
+      background: var(--bg-panel);
+      border: 2px solid var(--dark-red);
       max-height: 240px; overflow-y: auto;
-      font-family: sans-serif; font-size: 0.85rem;
       display: none; z-index: 20;
     }
     #header-container.open #dropdown { display: block; }
-
     #filterInput {
       width: 96%; margin: 0.5rem auto; padding: 0.4rem;
       font-size: 0.9rem; display: block;
     }
-    #pokeList { list-style: none; }
+    #pokeList { list-style: none; margin: 0; padding: 0; }
     #pokeList li {
       padding: 0.4rem 0.6rem; border-top: 1px solid #ddd;
       cursor: pointer;
@@ -55,12 +68,13 @@
 
     /* Viewer */
     #viewer {
-      flex: 1; background: #fff;
+      flex: 1; background: var(--bg-panel);
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
     #sprite-container {
-      width: 300px; height: 300px; perspective: 800px;
+      width: 300px; height: 300px;
+      perspective: 800px;
     }
     .sprite {
       width: 100%; height: 100%;
@@ -71,7 +85,8 @@
     .sprite img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
-      backface-visibility: hidden; image-rendering: pixelated;
+      backface-visibility: hidden;
+      image-rendering: pixelated;
     }
     #back { transform: rotateY(180deg); }
 
@@ -79,7 +94,8 @@
     #spinner {
       position: absolute; width: 48px; height: 48px;
       background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      animation: spin 1s linear infinite; display: none; z-index: 10;
+      animation: spin 1s linear infinite;
+      display: none; z-index: 10;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -89,36 +105,32 @@
       display: flex; justify-content: center; align-items: center;
       gap: 4px; padding: 0.4rem;
     }
-    .control-btn {
-      font-family: 'Press Start 2P', cursive;
+    .control-btn, .pokeball-btn {
       font-size: 0.6rem; padding: 0.5rem 0.8rem;
-      background: #fdfdfd; border: 2px solid #555;
+      background: #fdfdfd; border: 2px solid var(--border);
       cursor: pointer;
+      user-select: none;
     }
-    .control-btn:hover { background: #ffcccc; }
-
+    .control-btn:disabled { opacity: 0.5; cursor: default; }
+    .control-btn:hover:not(:disabled) { background: var(--hover); }
     .pokeball-btn {
       width: 36px; height: 36px;
       background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      border: 2px solid #555; cursor: pointer;
     }
-    .pokeball-btn:hover { background-color: #ffcccc; }
+    .pokeball-btn:hover { background-color: var(--hover); }
 
-    /* Info grid & cards */
+    /* Info Panel */
     #info {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-      background: #fff;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap: 1rem; padding: 1rem;
+      background: var(--bg-panel);
       border-top: 2px solid #ccc;
-      overflow-y: auto;
-      max-height: 40%;
+      overflow-y: auto; max-height: 40%;
     }
     .info-card {
-      background: #f9f9f9;
-      border-radius: 6px;
-      padding: 0.75rem;
+      background: var(--bg-card);
+      border-radius: 6px; padding: 0.75rem;
       box-shadow: inset 0 0 0 1px #ddd;
     }
     .info-card h3 {
@@ -128,47 +140,52 @@
       letter-spacing: 0.5px;
     }
     .info-card p, .info-card ul {
-      font-size: 0.85rem;
-      line-height: 1.4;
+      font-size: 0.85rem; line-height: 1.4;
     }
-    .info-card ul {
-      list-style: disc inside;
-      margin: 0;
-      padding-left: 1rem;
+    .info-card ul { list-style: disc inside; margin: 0; padding-left: 1rem; }
+    .info-card li + li { margin-top: 0.3rem; }
+    .error-banner {
+      grid-column: 1 / -1;
+      background: #fdd;
+      color: #900;
+      padding: 0.5rem;
+      text-align: center;
+      border: 1px solid #900;
+      border-radius: 4px;
     }
   </style>
 </head>
-
 <body>
   <div id="header-container">
-    <div id="ribbon">
+    <div id="ribbon" role="button" aria-haspopup="listbox" aria-expanded="false">
       Loading…
       <svg viewBox="0 0 10 6"><path d="M0,0 L5,6 L10,0 Z"/></svg>
     </div>
-    <div id="dropdown">
-      <input id="filterInput" placeholder="Search Pokémon…" />
+    <div id="dropdown" role="listbox" aria-label="Pokémon selector">
+      <input id="filterInput" placeholder="Search Pokémon…" aria-label="Filter Pokémon list"/>
       <ul id="pokeList"></ul>
     </div>
   </div>
 
   <div id="viewer">
-    <div id="spinner"></div>
+    <div id="spinner" role="status" aria-live="polite"></div>
     <div id="sprite-container">
       <div class="sprite" id="sprite">
-        <img id="front" src="" alt="Front Sprite"/>
-        <img id="back"  src="" alt="Back Sprite"/>
+        <img id="front" alt="Front sprite"/>
+        <img id="back"  alt="Back sprite"/>
       </div>
     </div>
   </div>
 
   <div id="controls">
-    <button class="control-btn" id="prev">&lt; Prev</button>
-    <button class="control-btn" id="flip">Flip</button>
-    <button class="control-btn" id="next">Next &gt;</button>
-    <button class="control-btn pokeball-btn" id="random" title="Random"></button>
+    <button class="control-btn" id="prev" aria-label="Previous Pokémon">&lt; Prev</button>
+    <button class="control-btn" id="flip" aria-label="Flip sprite">Flip</button>
+    <button class="control-btn" id="next" aria-label="Next Pokémon">Next &gt;</button>
+    <button class="control-btn pokeball-btn" id="random" aria-label="Random Pokémon"></button>
   </div>
 
   <div id="info">
+    <!-- Error banner injected here if needed -->
     <div class="info-card lore">
       <h3>Lore</h3>
       <p id="lore-text"></p>
@@ -194,171 +211,202 @@
   <script>
   (function(){
     const maxId = 1010;
-    let currentId = 1, pokemonList = [];
+    let currentId = 1, pokemonList = [], searchDebounce;
 
-    // Header/dropdown elements
+    // Elements
     const headerContainer = document.getElementById('header-container');
-    const ribbon         = document.getElementById('ribbon');
-    const dropdown       = document.getElementById('dropdown');
-    const filterInput    = document.getElementById('filterInput');
-    const pokeList       = document.getElementById('pokeList');
+    const ribbon          = document.getElementById('ribbon');
+    const dropdown        = document.getElementById('dropdown');
+    const filterInput     = document.getElementById('filterInput');
+    const pokeList        = document.getElementById('pokeList');
 
-    // Viewer elements
     const spriteWrap = document.getElementById('sprite');
     const frontImg   = document.getElementById('front');
     const backImg    = document.getElementById('back');
     const spinner    = document.getElementById('spinner');
 
-    // Info elements
-    const loreText     = document.getElementById('lore-text');
-    const detailsList  = document.getElementById('details-list');
-    const statsList    = document.getElementById('stats-list');
-    const movesList    = document.getElementById('moves-list');
-    const evoList      = document.getElementById('evo-list');
+    const loreText    = document.getElementById('lore-text');
+    const detailsList = document.getElementById('details-list');
+    const statsList   = document.getElementById('stats-list');
+    const movesList   = document.getElementById('moves-list');
+    const evoList     = document.getElementById('evo-list');
 
-    // Controls
-    document.getElementById('prev').onclick = () => loadPokemon(--currentId || (currentId = maxId));
-    document.getElementById('next').onclick = () => loadPokemon(currentId === maxId ? (currentId = 1) : ++currentId);
-    document.getElementById('flip').onclick = () => spriteWrap.classList.toggle('flipped');
-    document.getElementById('random').onclick = () => loadPokemon(currentId = Math.floor(Math.random() * maxId) + 1);
+    const btnPrev   = document.getElementById('prev');
+    const btnNext   = document.getElementById('next');
+    const btnFlip   = document.getElementById('flip');
+    const btnRandom = document.getElementById('random');
 
-    // Dropdown toggling
+    // Disable controls during load
+    function setControlsDisabled(val) {
+      [btnPrev, btnNext, btnFlip, btnRandom].forEach(b => b.disabled = val);
+      ribbon.setAttribute('aria-disabled', val);
+    }
+
+    // Ribbon toggle
     ribbon.addEventListener('click', e => {
       e.stopPropagation();
-      headerContainer.classList.toggle('open');
-      filterInput.focus();
+      const isOpen = headerContainer.classList.toggle('open');
+      ribbon.setAttribute('aria-expanded', isOpen);
+      if (isOpen) filterInput.focus();
     });
     dropdown.addEventListener('click', e => e.stopPropagation());
-    document.addEventListener('click', () => headerContainer.classList.remove('open'));
+    document.addEventListener('click', () => {
+      headerContainer.classList.remove('open');
+      ribbon.setAttribute('aria-expanded', 'false');
+    });
 
-    // Live filter
+    // Live filter with debounce
     filterInput.addEventListener('input', () => {
-      const term = filterInput.value.toLowerCase();
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(populateList, 200);
+    });
+
+    function populateList() {
+      const term = filterInput.value.trim().toLowerCase();
       pokeList.innerHTML = '';
       pokemonList
         .filter(p => p.name.includes(term) || p.id.toString().includes(term))
+        .slice(0, 100) // limit to first 100 matches
         .forEach(p => {
           const li = document.createElement('li');
           li.textContent = `#${p.id} ${p.name}`;
-          li.onclick = () => {
-            loadPokemon(currentId = p.id);
-            headerContainer.classList.remove('open');
-          };
+          li.tabIndex = 0;
+          li.onclick = () => selectFromList(p.id);
           pokeList.appendChild(li);
         });
-    });
-
-    // Preload list of names & IDs
-    async function preloadList(){
-      const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
-      const data = await res.json();
-      pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
-      filterInput.dispatchEvent(new Event('input'));
     }
 
-    // Generation → release year map
+    function selectFromList(id) {
+      headerContainer.classList.remove('open');
+      ribbon.setAttribute('aria-expanded', 'false');
+      loadPokemon(currentId = id);
+    }
+
+    // Control handlers
+    btnPrev.onclick   = () => loadPokemon(--currentId || (currentId = maxId));
+    btnNext.onclick   = () => loadPokemon(currentId === maxId ? (currentId = 1) : ++currentId);
+    btnFlip.onclick   = () => spriteWrap.classList.toggle('flipped');
+    btnRandom.onclick = () => loadPokemon(currentId = Math.floor(Math.random()*maxId) + 1);
+
+    // Preload name list
+    async function preloadList(){
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
+        const data = await res.json();
+        pokemonList = data.results.map((p,i)=>({name:p.name,id:i+1}));
+        populateList();
+      } catch {
+        showError('Failed to load Pokémon list.');
+      }
+    }
+
+    // Show error banner
+    function showError(msg) {
+      let banner = document.querySelector('.error-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'error-banner';
+        document.getElementById('info').prepend(banner);
+      }
+      banner.textContent = msg;
+    }
+
+    // Generation → Year
     const genYearMap = {
-      'generation-i':  { name: 'Gen I',   year: 1996 },
-      'generation-ii': { name: 'Gen II',  year: 1999 },
-      'generation-iii':{ name: 'Gen III', year: 2002 },
-      'generation-iv': { name: 'Gen IV',  year: 2006 },
-      'generation-v':  { name: 'Gen V',   year: 2010 },
-      'generation-vi': { name: 'Gen VI',  year: 2013 },
-      'generation-vii':{ name:'Gen VII', year: 2016 },
-      'generation-viii':{name:'Gen VIII',year: 2019},
-      'generation-ix': { name: 'Gen IX',  year: 2022 }
+      'generation-i':  {n:'Gen I',  y:1996}, 'generation-ii': {n:'Gen II', y:1999},
+      'generation-iii':{n:'Gen III',y:2002}, 'generation-iv':  {n:'Gen IV', y:2006},
+      'generation-v': {n:'Gen V',   y:2010}, 'generation-vi':  {n:'Gen VI', y:2013},
+      'generation-vii':{n:'Gen VII',y:2016}, 'generation-viii':{n:'Gen VIII',y:2019},
+      'generation-ix': {n:'Gen IX', y:2022}
     };
 
     // Main loader
-    async function loadPokemon(id){
+    async function loadPokemon(id) {
+      setControlsDisabled(true);
+      spriteWrap.classList.remove('flipped');
       spinner.style.display = 'block';
       ribbon.firstChild.nodeValue = 'Loading… ';
-      spriteWrap.classList.remove('flipped');
-
       try {
-        const p  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
-        const sp = await fetch(p.species.url).then(r=>r.json());
+        const [p, sp] = await Promise.all([
+          fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json()),
+          fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`).then(r=>r.json())
+        ]);
 
         // Sprites & title
         frontImg.src = p.sprites.front_default || '';
         backImg.src  = p.sprites.back_default  || '';
         ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
 
-        // Lore (single concise entry)
-        const entry = sp.flavor_text_entries.find(e=>e.language.name==='en');
-        loreText.textContent = entry
-          ? entry.flavor_text.replace(/[\n\f]/g,' ')
+        // Lore: prefer Red/Blue entry
+        const loreEntries = sp.flavor_text_entries.filter(e=>e.language.name==='en');
+        const chosen = loreEntries.find(e=>['red','blue'].includes(e.version.name)) || loreEntries[0];
+        loreText.textContent = chosen
+          ? chosen.flavor_text.replace(/[\n\f]/g,' ')
           : 'No lore available.';
 
         // Details
         detailsList.innerHTML = '';
-        // Types
-        const typesLi = document.createElement('li');
-        typesLi.innerHTML = '<strong>Types:</strong> ';
-        p.types.forEach(t => {
+        appendDetail('Types', p.types.map(t=>t.type.name), text=>{
           const span = document.createElement('span');
-          span.style.background = typeColor(t.type.name);
-          span.textContent = t.type.name;
-          span.style.color = '#fff';
-          span.style.padding = '2px 6px';
-          span.style.marginRight = '4px';
-          span.style.borderRadius = '2px';
-          typesLi.appendChild(span);
+          span.textContent = text;
+          Object.assign(span.style,{
+            background: typeColor(text),
+            color:'#fff', padding:'2px 6px',
+            marginRight:'4px', borderRadius:'2px',
+            fontSize:'0.75rem', textTransform:'uppercase'
+          });
+          return span;
         });
-        detailsList.appendChild(typesLi);
-        // Generation & year
-        const genData = genYearMap[sp.generation.name] || { name: sp.generation.name, year: '?' };
-        const genLi = document.createElement('li');
-        genLi.innerHTML = `<strong>Generation:</strong> ${genData.name} (${genData.year})`;
-        detailsList.appendChild(genLi);
-        // Habitat
-        const habLi = document.createElement('li');
-        habLi.innerHTML = `<strong>Habitat:</strong> ${sp.habitat?.name || 'Unknown'}`;
-        detailsList.appendChild(habLi);
-        // Capture rate
-        const capLi = document.createElement('li');
-        capLi.innerHTML = `<strong>Capture Rate:</strong> ${sp.capture_rate}`;
-        detailsList.appendChild(capLi);
-        // Base happiness
-        const hapLi = document.createElement('li');
-        hapLi.innerHTML = `<strong>Happiness:</strong> ${sp.base_happiness}`;
-        detailsList.appendChild(hapLi);
+        const gen = genYearMap[sp.generation.name] || {n:sp.generation.name, y:'?'};
+        appendDetail('Generation', `${gen.n} (${gen.y})`);
+        appendDetail('Habitat', sp.habitat?.name || 'Unknown');
+        appendDetail('Capture Rate', sp.capture_rate);
+        appendDetail('Happiness', sp.base_happiness);
 
         // Stats
         statsList.innerHTML = '';
-        p.stats.forEach(s => {
-          const li = document.createElement('li');
-          li.textContent = `${s.stat.name}: ${s.base_stat}`;
-          statsList.appendChild(li);
-        });
+        p.stats.forEach(s => appendListItem(statsList, `${s.stat.name}: ${s.base_stat}`));
 
         // Moves
         movesList.innerHTML = '';
-        p.moves.slice(0,5).forEach(m => {
-          const li = document.createElement('li');
-          li.textContent = m.move.name;
-          movesList.appendChild(li);
-        });
+        p.moves.slice(0,5).forEach(m => appendListItem(movesList, m.move.name));
 
         // Evolutions
         evoList.innerHTML = '';
         const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
         (function walk(node){
-          const li = document.createElement('li');
-          li.textContent = node.species.name;
-          evoList.appendChild(li);
+          appendListItem(evoList, node.species.name);
           node.evolves_to.forEach(walk);
         })(chain.chain);
 
       } catch {
+        showError('Failed to load Pokémon data.');
         ribbon.firstChild.nodeValue = 'Error loading.';
       } finally {
         spinner.style.display = 'none';
+        setControlsDisabled(false);
       }
     }
 
-    // Color map
-    function typeColor(type){
+    // Helpers
+    function appendDetail(label, value, transform) {
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${label}:</strong> `;
+      if (Array.isArray(value)) {
+        value.forEach(v => {
+          li.appendChild(transform ? transform(v) : document.createTextNode(v + ' '));
+        });
+      } else {
+        li.append(value);
+      }
+      detailsList.appendChild(li);
+    }
+    function appendListItem(ul, text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      ul.appendChild(li);
+    }
+    function typeColor(type) {
       return ({
         fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
         ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
@@ -368,8 +416,10 @@
       }[type] || '#888');
     }
 
+    // Initialize
     preloadList();
     loadPokemon(currentId);
+
   })();
   </script>
 </body>
