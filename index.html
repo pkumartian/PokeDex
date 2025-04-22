@@ -1,218 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Simple Mobile Pokédex</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Pokédex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    body, html {
+    html, body {
       margin: 0; padding: 0;
-      height: 100%; width: 100%;
-      display: flex; flex-direction: column;
-      font-family: sans-serif;
+      width: 100%; height: 100%;
       background: #f2f2f2;
+      font-family: 'Press Start 2P', cursive;
       color: #333;
-      overflow: hidden;
+      display: flex; flex-direction: column;
     }
+
+    #ribbon {
+      text-align: center;
+      background: #d22c2c;
+      color: white;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+      border-bottom: 4px solid #8b0000;
+      box-shadow: 0 4px 0 #8b0000;
+    }
+
     #viewer {
       position: relative;
       flex: 1;
-      display: flex; align-items: center; justify-content: center;
       background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
-    #sprite, #overlay {
+
+    #sprite-container {
+      width: 300px;
+      height: 300px;
+      perspective: 800px;
+    }
+
+    .sprite {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .sprite.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .sprite img {
+      width: 100%;
+      height: 100%;
       position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%) rotate(0deg);
-      touch-action: none;
-      user-select: none;
+      top: 0; left: 0;
+      backface-visibility: hidden;
+      image-rendering: pixelated;
     }
+
+    #back {
+      transform: rotateY(180deg);
+    }
+
+    #spinner {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Poké_Ball_icon.png') center/contain no-repeat;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 10;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     #controls {
+      background: #eee;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
       padding: 0.5rem;
-      display: flex; flex-wrap: wrap;
-      align-items: center; justify-content: space-around;
-      background: #e0e0e0;
+      flex-wrap: wrap;
     }
-    #controls button, #controls input[type="file"] {
-      font-size: 1rem; padding: 0.5rem;
-    }
-    #rotate {
-      width: 40%;
-    }
+
     #info {
-      padding: 0.5rem;
       background: #fff;
+      border-top: 2px solid #ccc;
+      padding: 0.5rem;
+      font-family: sans-serif;
+      font-size: 0.9rem;
       overflow-y: auto;
       max-height: 40%;
-      border-top: 1px solid #ccc;
     }
-    #info h2 { margin: 0.2rem 0; text-transform: capitalize; }
-    #info ul { margin: 0.2rem 0; padding-left: 1.2rem; }
-    #info li { margin: 0.1rem 0; }
+
+    #types span {
+      display: inline-block;
+      margin: 2px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #ccc;
+      color: #fff;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    button {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 0.6rem;
+      padding: 0.4rem;
+    }
+
+    input[type="file"], input[type="range"] {
+      font-family: sans-serif;
+    }
   </style>
 </head>
 <body>
 
+  <div id="ribbon">Loading Pokédex Entry...</div>
+
   <div id="viewer">
-    <img id="sprite" src="" alt="Pokémon" width="200">
-    <img id="overlay" src="" alt="" width="100" style="display:none; cursor:grab;">
+    <div id="spinner"></div>
+    <div id="sprite-container">
+      <div class="sprite" id="sprite">
+        <img id="front" src="" alt="Front Sprite">
+        <img id="back" src="" alt="Back Sprite">
+      </div>
+    </div>
   </div>
 
   <div id="controls">
     <button id="prev">◀️ Prev</button>
+    <button id="flip">🔄 Flip</button>
     <button id="next">Next ▶️</button>
     <input type="file" id="upload" accept="image/*">
-    <input type="range" id="rotate" min="0" max="360" value="0">
   </div>
 
   <div id="info">
     <h2 id="name"></h2>
     <div><strong>Types:</strong> <span id="types"></span></div>
-    <div><strong>Flavor:</strong> <p id="flavor" style="margin:0.2rem 0;"></p></div>
-    <div><strong>Stats:</strong> <span id="stats"></span></div>
-    <div><strong>Moves:</strong><ul id="moves"></ul></div>
-    <div><strong>Evolutions:</strong><ul id="evo"></ul></div>
+    <div><strong>Flavor:</strong> <p id="flavor"></p></div>
+    <div><strong>Stats:</strong> <p id="stats"></p></div>
+    <div><strong>Moves:</strong> <ul id="moves"></ul></div>
+    <div><strong>Evolutions:</strong> <ul id="evo"></ul></div>
   </div>
 
   <script>
-  (function(){
-    let currentId = 1;
-    const maxId = 1010;
-    const spriteEl = document.getElementById('sprite');
-    const overlayEl = document.getElementById('overlay');
-    const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    const uploadIn = document.getElementById('upload');
-    const rotateIn = document.getElementById('rotate');
+    (function(){
+      let currentId = 1;
+      const maxId = 1010;
 
-    const nameEl = document.getElementById('name');
-    const typesEl = document.getElementById('types');
-    const flavorEl = document.getElementById('flavor');
-    const statsEl = document.getElementById('stats');
-    const movesEl = document.getElementById('moves');
-    const evoEl = document.getElementById('evo');
+      const frontImg = document.getElementById('front');
+      const backImg = document.getElementById('back');
+      const spriteWrapper = document.getElementById('sprite');
+      const ribbon = document.getElementById('ribbon');
+      const spinner = document.getElementById('spinner');
 
-    function clamp(v, min, max) {
-      return Math.min(Math.max(v, min), max);
-    }
+      const nameEl = document.getElementById('name');
+      const typesEl = document.getElementById('types');
+      const flavorEl = document.getElementById('flavor');
+      const statsEl = document.getElementById('stats');
+      const movesEl = document.getElementById('moves');
+      const evoEl = document.getElementById('evo');
 
-    async function loadPokemon(id) {
-      try {
-        const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r => r.json());
-        const sp = await fetch(p.species.url).then(r => r.json());
+      document.getElementById('prev').onclick = () => {
+        currentId = currentId > 1 ? currentId - 1 : maxId;
+        loadPokemon(currentId);
+      };
+      document.getElementById('next').onclick = () => {
+        currentId = currentId < maxId ? currentId + 1 : 1;
+        loadPokemon(currentId);
+      };
+      document.getElementById('flip').onclick = () => {
+        spriteWrapper.classList.toggle('flipped');
+      };
 
-        spriteEl.src = p.sprites.front_default;
-        rotateIn.value = 0;
-        spriteEl.style.transform = 'translate(-50%, -50%) rotate(0deg)';
-        overlayEl.style.display = 'none';
+      document.getElementById('upload').onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        frontImg.src = url;
+        backImg.src = '';
+      };
 
-        nameEl.textContent = `#${p.id} ${p.name}`;
-        typesEl.textContent = p.types.map(t => t.type.name).join(', ');
+      async function loadPokemon(id){
+        spinner.style.display = 'block';
+        ribbon.textContent = 'Loading...';
+        spriteWrapper.classList.remove('flipped');
 
-        const ft = sp.flavor_text_entries.find(e => e.language.name === 'en');
-        flavorEl.textContent = ft ? ft.flavor_text.replace(/[\n\f]/g, ' ') : 'No description.';
+        try {
+          const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+          const sp = await fetch(p.species.url).then(r=>r.json());
 
-        statsEl.textContent = p.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(' | ');
+          // Sprites
+          frontImg.src = p.sprites.front_default || '';
+          backImg.src = p.sprites.back_default || '';
 
-        movesEl.innerHTML = '';
-        p.moves.slice(0, 5).forEach(m => {
-          const li = document.createElement('li');
-          li.textContent = m.move.name;
-          movesEl.appendChild(li);
-        });
+          // Ribbon
+          ribbon.textContent = `#${p.id} — ${p.name.toUpperCase()}`;
 
-        evoEl.innerHTML = '';
-        const chain = await fetch(sp.evolution_chain.url).then(r => r.json());
-        (function traverse(node) {
-          const li = document.createElement('li');
-          li.textContent = node.species.name;
-          evoEl.appendChild(li);
-          node.evolves_to.forEach(traverse);
-        })(chain.chain);
-      } catch (err) {
-        nameEl.textContent = 'Error loading Pokémon.';
-        console.error('Error:', err);
+          // Types
+          typesEl.innerHTML = '';
+          p.types.forEach(t => {
+            const span = document.createElement('span');
+            span.style.background = typeColor(t.type.name);
+            span.textContent = t.type.name;
+            typesEl.appendChild(span);
+          });
+
+          // Flavor Text
+          const entry = sp.flavor_text_entries.find(e => e.language.name === 'en');
+          flavorEl.textContent = entry ? entry.flavor_text.replace(/[\n\f]/g, ' ') : 'No description.';
+
+          // Stats
+          statsEl.textContent = p.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(' | ');
+
+          // Moves
+          movesEl.innerHTML = '';
+          p.moves.slice(0, 5).forEach(m => {
+            const li = document.createElement('li');
+            li.textContent = m.move.name;
+            movesEl.appendChild(li);
+          });
+
+          // Evolutions
+          evoEl.innerHTML = '';
+          const chain = await fetch(sp.evolution_chain.url).then(r => r.json());
+          (function walk(node){
+            const li = document.createElement('li');
+            li.textContent = node.species.name;
+            evoEl.appendChild(li);
+            node.evolves_to.forEach(walk);
+          })(chain.chain);
+
+        } catch (e) {
+          ribbon.textContent = 'Error loading Pokémon.';
+          console.error(e);
+        } finally {
+          spinner.style.display = 'none';
+        }
       }
-    }
 
-    prevBtn.onclick = () => {
-      currentId = clamp(currentId - 1, 1, maxId);
+      function typeColor(type){
+        const colors = {
+          fire: '#f08030', water: '#6890f0', grass: '#78c850', electric: '#f8d030',
+          ice: '#98d8d8', fighting: '#c03028', poison: '#a040a0', ground: '#e0c068',
+          flying: '#a890f0', psychic: '#f85888', bug: '#a8b820', rock: '#b8a038',
+          ghost: '#705898', dragon: '#7038f8', dark: '#705848', steel: '#b8b8d0',
+          fairy: '#ee99ac', normal: '#a8a878'
+        };
+        return colors[type] || '#888';
+      }
+
       loadPokemon(currentId);
-    };
-    nextBtn.onclick = () => {
-      currentId = clamp(currentId + 1, 1, maxId);
-      loadPokemon(currentId);
-    };
-
-    rotateIn.oninput = e => {
-      const deg = e.target.value;
-      spriteEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
-      if (overlayEl.style.display !== 'none') {
-        overlayEl.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
-      }
-    };
-
-    uploadIn.onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      overlayEl.src = url;
-      overlayEl.style.display = 'block';
-      overlayEl.style.left = '50%';
-      overlayEl.style.top = '50%';
-      overlayEl.style.transform = spriteEl.style.transform;
-    };
-
-    // Mouse + Touch Drag
-    let isDragging = false, startX = 0, startY = 0, offsetX = 0, offsetY = 0;
-
-    function startDrag(x, y) {
-      isDragging = true;
-      const rect = overlayEl.getBoundingClientRect();
-      offsetX = rect.left - x;
-      offsetY = rect.top - y;
-      overlayEl.style.cursor = 'grabbing';
-    }
-
-    function onDragMove(x, y) {
-      if (!isDragging) return;
-      overlayEl.style.left = `${x + offsetX}px`;
-      overlayEl.style.top = `${y + offsetY}px`;
-    }
-
-    overlayEl.addEventListener('mousedown', e => {
-      startDrag(e.clientX, e.clientY);
-    });
-
-    document.addEventListener('mousemove', e => {
-      onDragMove(e.clientX, e.clientY);
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-        overlayEl.style.cursor = 'grab';
-      }
-    });
-
-    // Mobile Touch Support
-    overlayEl.addEventListener('touchstart', e => {
-      const touch = e.touches[0];
-      startDrag(touch.clientX, touch.clientY);
-    });
-
-    overlayEl.addEventListener('touchmove', e => {
-      const touch = e.touches[0];
-      onDragMove(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    overlayEl.addEventListener('touchend', () => {
-      isDragging = false;
-      overlayEl.style.cursor = 'grab';
-    });
-
-    loadPokemon(currentId);
-  })();
+    })();
   </script>
 </body>
 </html>
