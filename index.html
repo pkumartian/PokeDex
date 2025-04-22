@@ -2,145 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pixel Pokédex</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
+    /* Global & Layout */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      margin: 0; padding: 0;
       width: 100%; height: 100%;
+      display: flex; flex-direction: column;
       background: #f2f2f2;
       font-family: 'Press Start 2P', cursive;
       color: #333;
-      display: flex; flex-direction: column;
     }
-
     #ribbon {
-      text-align: center;
+      position: relative;
       background: #d22c2c;
-      color: white;
-      padding: 0.75rem;
+      color: #fff;
+      text-align: center;
+      padding: 0.5rem;
       font-size: 0.75rem;
       border-bottom: 4px solid #8b0000;
-      box-shadow: 0 4px 0 #8b0000;
       cursor: pointer;
-      position: relative;
+      user-select: none;
     }
-
     #dropdown {
       display: none;
       position: absolute;
-      top: 100%;
-      left: 0; right: 0;
-      max-height: 300px;
+      top: 100%; left: 0; right: 0;
+      max-height: 240px;
       overflow-y: auto;
       background: #fff;
-      z-index: 20;
       border: 2px solid #8b0000;
       font-family: sans-serif;
-      font-size: 0.8rem;
+      z-index: 10;
     }
-
     #dropdown input {
       width: 96%;
-      margin: 0.5rem;
+      margin: 0.5rem auto;
       padding: 0.4rem;
-      font-size: 1rem;
+      display: block;
+      font-size: 0.9rem;
     }
-
     #dropdown ul {
       list-style: none;
-      padding: 0;
-      margin: 0;
     }
-
     #dropdown li {
-      padding: 0.4rem;
-      border-bottom: 1px solid #ddd;
+      padding: 0.4rem 0.6rem;
+      border-top: 1px solid #ddd;
       cursor: pointer;
+      font-size: 0.85rem;
     }
-
     #dropdown li:hover {
       background: #eee;
     }
 
     #viewer {
-      position: relative;
       flex: 1;
       background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
-
     #sprite-container {
       width: 300px;
       height: 300px;
       perspective: 800px;
     }
-
     .sprite {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.6s;
     }
-
-    .sprite.flipped {
-      transform: rotateY(180deg);
-    }
-
+    .sprite.flipped { transform: rotateY(180deg); }
     .sprite img {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0; left: 0;
+      width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0;
       backface-visibility: hidden;
       image-rendering: pixelated;
     }
-
-    #back {
-      transform: rotateY(180deg);
-    }
+    #back { transform: rotateY(180deg); }
 
     #spinner {
       position: absolute;
-      width: 64px;
-      height: 64px;
-      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Poké_Ball_icon.png') center/contain no-repeat;
+      width: 48px; height: 48px;
+      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Pok%C3%A9_Ball_icon.png') center/contain no-repeat;
       animation: spin 1s linear infinite;
       display: none;
-      z-index: 10;
     }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
     #controls {
       background: #eee;
       display: flex;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
-      padding: 0.5rem;
-      flex-wrap: wrap;
-      gap: 0.4rem;
+      gap: 6px;
+      padding: 0.4rem;
     }
-
-    button {
+    .control-btn {
       font-family: 'Press Start 2P', cursive;
       font-size: 0.6rem;
-      padding: 0.6rem 0.8rem;
+      padding: 0.5rem 0.8rem;
       background: #fdfdfd;
       border: 2px solid #555;
-      box-shadow: 2px 2px 0 #000;
+      cursor: pointer;
+      user-select: none;
+    }
+    .control-btn:hover {
+      background: #ffcccc;
+    }
+    .pokeball-btn {
+      width: 36px; height: 36px;
+      background: url('https://archives.bulbagarden.net/media/upload/0/0d/Pok%C3%A9_Ball_icon.png') center/contain no-repeat;
+      border: 2px solid #555;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #ffcccb;
+    .pokeball-btn:hover {
+      background-color: #ffcccc;
     }
 
     #info {
@@ -150,27 +131,46 @@
       font-family: sans-serif;
       font-size: 0.9rem;
       overflow-y: auto;
-      max-height: 40%;
+      max-height: 35%;
     }
-
+    #info h2 {
+      font-size: 1rem;
+      margin-bottom: 0.4rem;
+    }
     #types span {
       display: inline-block;
-      margin: 2px;
+      margin-right: 4px;
       padding: 2px 6px;
-      border-radius: 4px;
-      background: #ccc;
+      background: #888;
       color: #fff;
-      font-weight: bold;
+      font-size: 0.7rem;
       text-transform: uppercase;
-      font-size: 0.75rem;
+      border-radius: 2px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 4px;
+      margin: 0.4rem 0 0.8rem;
+    }
+    .stats-grid div {
+      font-size: 0.85rem;
+    }
+    #moves, #evo {
+      margin-left: 1rem;
+      margin-bottom: 0.6rem;
+    }
+    #moves li, #evo li {
+      margin-bottom: 0.2rem;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
 
-  <div id="ribbon">Loading Pokédex Entry...
+  <div id="ribbon">Loading… 
     <div id="dropdown">
-      <input type="text" placeholder="Search Pokémon..." id="filterInput">
+      <input type="text" id="filterInput" placeholder="Search Pokémon…">
       <ul id="pokeList"></ul>
     </div>
   </div>
@@ -179,51 +179,55 @@
     <div id="spinner"></div>
     <div id="sprite-container">
       <div class="sprite" id="sprite">
-        <img id="front" src="" alt="Front Sprite">
-        <img id="back" src="" alt="Back Sprite">
+        <img id="front" src="" alt="Front">
+        <img id="back" src="" alt="Back">
       </div>
     </div>
   </div>
 
   <div id="controls">
-    <button id="prev">◀️ Prev</button>
-    <button id="flip">🔄 Flip</button>
-    <button id="next">Next ▶️</button>
-    <button id="random">❓ Random</button>
-    <input type="file" id="upload" accept="image/*">
+    <button class="control-btn" id="prev">&lt; Prev</button>
+    <button class="control-btn" id="flip">Flip</button>
+    <button class="control-btn" id="next">Next &gt;</button>
+    <button class="pokeball-btn" id="random" aria-label="Random Pokémon"></button>
   </div>
 
   <div id="info">
     <h2 id="name"></h2>
     <div><strong>Types:</strong> <span id="types"></span></div>
-    <div><strong>Flavor:</strong> <p id="flavor"></p></div>
-    <div><strong>Stats:</strong> <p id="stats"></p></div>
-    <div><strong>Moves:</strong> <ul id="moves"></ul></div>
-    <div><strong>Evolutions:</strong> <ul id="evo"></ul></div>
+    <div><strong>Lore:</strong> <p id="flavor"></p></div>
+    <div><strong>Stats:</strong>
+      <div id="stats" class="stats-grid"></div>
+    </div>
+    <div><strong>Moves:</strong>
+      <ul id="moves"></ul>
+    </div>
+    <div><strong>Evolutions:</strong>
+      <ul id="evo"></ul>
+    </div>
   </div>
 
   <script>
     (function(){
-      let currentId = 1;
+      let currentId = 1, pokemonList = [];
       const maxId = 1010;
-      let pokemonList = [];
 
-      const ribbon = document.getElementById('ribbon');
-      const dropdown = document.getElementById('dropdown');
-      const pokeList = document.getElementById('pokeList');
-      const filterInput = document.getElementById('filterInput');
+      const ribbon     = document.getElementById('ribbon');
+      const dropdown   = document.getElementById('dropdown');
+      const filterInput= document.getElementById('filterInput');
+      const pokeList   = document.getElementById('pokeList');
 
-      const spriteWrapper = document.getElementById('sprite');
-      const frontImg = document.getElementById('front');
-      const backImg = document.getElementById('back');
-      const spinner = document.getElementById('spinner');
+      const spriteWrap = document.getElementById('sprite');
+      const frontImg   = document.getElementById('front');
+      const backImg    = document.getElementById('back');
+      const spinner    = document.getElementById('spinner');
 
-      const nameEl = document.getElementById('name');
-      const typesEl = document.getElementById('types');
-      const flavorEl = document.getElementById('flavor');
-      const statsEl = document.getElementById('stats');
-      const movesEl = document.getElementById('moves');
-      const evoEl = document.getElementById('evo');
+      const nameEl     = document.getElementById('name');
+      const typesEl    = document.getElementById('types');
+      const flavorEl   = document.getElementById('flavor');
+      const statsEl    = document.getElementById('stats');
+      const movesEl    = document.getElementById('moves');
+      const evoEl      = document.getElementById('evo');
 
       document.getElementById('prev').onclick = () => {
         currentId = currentId > 1 ? currentId - 1 : maxId;
@@ -234,24 +238,17 @@
         loadPokemon(currentId);
       };
       document.getElementById('flip').onclick = () => {
-        spriteWrapper.classList.toggle('flipped');
+        spriteWrap.classList.toggle('flipped');
       };
       document.getElementById('random').onclick = () => {
         currentId = Math.floor(Math.random() * maxId) + 1;
         loadPokemon(currentId);
       };
-      document.getElementById('upload').onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        frontImg.src = url;
-        backImg.src = '';
-      };
 
       ribbon.onclick = () => {
         dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        filterInput.focus();
       };
-
       filterInput.oninput = () => {
         const term = filterInput.value.toLowerCase();
         pokeList.innerHTML = '';
@@ -270,25 +267,22 @@
       };
 
       async function preloadList() {
-        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1010');
+        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=' + maxId);
         const data = await res.json();
         pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
-        filterInput.dispatchEvent(new Event('input')); // Fill list
+        filterInput.dispatchEvent(new Event('input'));
       }
 
-      async function loadPokemon(id){
+      async function loadPokemon(id) {
         spinner.style.display = 'block';
-        ribbon.textContent = 'Loading...';
-        spriteWrapper.classList.remove('flipped');
-
+        ribbon.textContent = 'Loading…';
+        spriteWrap.classList.remove('flipped');
         try {
-          const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
+          const p  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
           const sp = await fetch(p.species.url).then(r=>r.json());
-
           frontImg.src = p.sprites.front_default || '';
-          backImg.src = p.sprites.back_default || '';
+          backImg.src  = p.sprites.back_default  || '';
           ribbon.textContent = `#${p.id} — ${p.name.toUpperCase()}`;
-
           typesEl.innerHTML = '';
           p.types.forEach(t => {
             const span = document.createElement('span');
@@ -296,43 +290,44 @@
             span.textContent = t.type.name;
             typesEl.appendChild(span);
           });
-
-          const entry = sp.flavor_text_entries.find(e => e.language.name === 'en');
-          flavorEl.textContent = entry ? entry.flavor_text.replace(/[\n\f]/g, ' ') : 'No description.';
-
-          statsEl.textContent = p.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(' | ');
-
+          const entry = sp.flavor_text_entries.find(e => e.language.name==='en');
+          flavorEl.textContent = entry
+            ? entry.flavor_text.replace(/[\n\f]/g,' ') 
+            : 'No lore available.';
+          statsEl.innerHTML = '';
+          p.stats.forEach(s => {
+            const d = document.createElement('div');
+            d.textContent = `${s.stat.name}: ${s.base_stat}`;
+            statsEl.appendChild(d);
+          });
           movesEl.innerHTML = '';
-          p.moves.slice(0, 5).forEach(m => {
+          p.moves.slice(0,5).forEach(m => {
             const li = document.createElement('li');
             li.textContent = m.move.name;
             movesEl.appendChild(li);
           });
-
           evoEl.innerHTML = '';
-          const chain = await fetch(sp.evolution_chain.url).then(r => r.json());
+          const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
           (function walk(node){
             const li = document.createElement('li');
             li.textContent = node.species.name;
             evoEl.appendChild(li);
             node.evolves_to.forEach(walk);
           })(chain.chain);
-
-        } catch (e) {
-          ribbon.textContent = 'Error loading Pokémon.';
-          console.error(e);
+        } catch {
+          ribbon.textContent = 'Error loading.';
         } finally {
           spinner.style.display = 'none';
         }
       }
 
-      function typeColor(type){
+      function typeColor(type) {
         const colors = {
-          fire: '#f08030', water: '#6890f0', grass: '#78c850', electric: '#f8d030',
-          ice: '#98d8d8', fighting: '#c03028', poison: '#a040a0', ground: '#e0c068',
-          flying: '#a890f0', psychic: '#f85888', bug: '#a8b820', rock: '#b8a038',
-          ghost: '#705898', dragon: '#7038f8', dark: '#705848', steel: '#b8b8d0',
-          fairy: '#ee99ac', normal: '#a8a878'
+          fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
+          ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
+          flying:'#a890f0', psychic:'#f85888', bug:'#a8b820', rock:'#b8a038',
+          ghost:'#705898', dragon:'#7038f8', dark:'#705848', steel:'#b8b8d0',
+          fairy:'#ee99ac', normal:'#a8a878'
         };
         return colors[type] || '#888';
       }
