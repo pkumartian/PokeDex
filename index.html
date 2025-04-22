@@ -6,7 +6,7 @@
   <title>Pixel Pokédex</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* Reset & global */
+    /* Reset & globals */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
@@ -28,9 +28,8 @@
       cursor: pointer;
     }
     #ribbon svg {
-      width: 0.8rem; vertical-align: middle;
-      margin-left: 0.4rem; fill: #fff;
-      transition: transform 0.2s;
+      width: 0.8rem; vertical-align: middle; margin-left: 0.4rem;
+      fill: #fff; transition: transform 0.2s;
     }
     #header-container.open #ribbon svg { transform: rotate(180deg); }
 
@@ -42,9 +41,10 @@
       display: none; z-index: 20;
     }
     #header-container.open #dropdown { display: block; }
+
     #filterInput {
       width: 96%; margin: 0.5rem auto; padding: 0.4rem;
-      display: block; font-size: 0.9rem;
+      font-size: 0.9rem; display: block;
     }
     #pokeList { list-style: none; }
     #pokeList li {
@@ -60,8 +60,7 @@
       position: relative;
     }
     #sprite-container {
-      width: 300px; height: 300px;
-      perspective: 800px;
+      width: 300px; height: 300px; perspective: 800px;
     }
     .sprite {
       width: 100%; height: 100%;
@@ -78,11 +77,9 @@
 
     /* Spinner */
     #spinner {
-      position: absolute;
-      width: 48px; height: 48px;
+      position: absolute; width: 48px; height: 48px;
       background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      animation: spin 1s linear infinite;
-      display: none; z-index: 10;
+      animation: spin 1s linear infinite; display: none; z-index: 10;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -94,10 +91,8 @@
     }
     .control-btn {
       font-family: 'Press Start 2P', cursive;
-      font-size: 0.6rem;
-      padding: 0.5rem 0.8rem;
-      background: #fdfdfd;
-      border: 2px solid #555;
+      font-size: 0.6rem; padding: 0.5rem 0.8rem;
+      background: #fdfdfd; border: 2px solid #555;
       cursor: pointer;
     }
     .control-btn:hover { background: #ffcccc; }
@@ -105,49 +100,41 @@
     .pokeball-btn {
       width: 36px; height: 36px;
       background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat;
-      border: 2px solid #555;
-      cursor: pointer;
+      border: 2px solid #555; cursor: pointer;
     }
     .pokeball-btn:hover { background-color: #ffcccc; }
 
-    /* Info panel */
+    /* Info grid & cards */
     #info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
       background: #fff;
       border-top: 2px solid #ccc;
-      padding: 0.5rem;
-      font-family: sans-serif;
-      font-size: 0.9rem;
       overflow-y: auto;
       max-height: 40%;
     }
-    #info h2 {
-      font-size: 1rem; margin-bottom: 0.4rem;
+    .info-card {
+      background: #f9f9f9;
+      border-radius: 6px;
+      padding: 0.75rem;
+      box-shadow: inset 0 0 0 1px #ddd;
     }
-    #types span {
-      display: inline-block; margin-right: 4px;
-      padding: 2px 6px; background: #888;
-      color: #fff; font-size: 0.7rem;
-      text-transform: uppercase; border-radius: 2px;
+    .info-card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px,1fr));
-      gap: 4px; margin: 0.4rem 0 0.8rem;
+    .info-card p, .info-card ul {
+      font-size: 0.85rem;
+      line-height: 1.4;
     }
-    .stats-grid div { font-size: 0.85rem; }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
-      gap: 6px; margin-bottom: 0.8rem;
-    }
-    .details-grid div { font-size: 0.85rem; }
-
-    #moves, #evo {
-      margin-left: 1rem; margin-bottom: 0.6rem;
-    }
-    #moves li, #evo li {
-      margin-bottom: 0.2rem; font-size: 0.85rem;
+    .info-card ul {
+      list-style: disc inside;
+      margin: 0;
+      padding-left: 1rem;
     }
   </style>
 </head>
@@ -155,7 +142,7 @@
 <body>
   <div id="header-container">
     <div id="ribbon">
-      Loading… 
+      Loading…
       <svg viewBox="0 0 10 6"><path d="M0,0 L5,6 L10,0 Z"/></svg>
     </div>
     <div id="dropdown">
@@ -178,30 +165,29 @@
     <button class="control-btn" id="prev">&lt; Prev</button>
     <button class="control-btn" id="flip">Flip</button>
     <button class="control-btn" id="next">Next &gt;</button>
-    <div class="pokeball-btn" id="random" title="Random Pokémon"></div>
+    <button class="control-btn pokeball-btn" id="random" title="Random"></button>
   </div>
 
   <div id="info">
-    <h2 id="name"></h2>
-    <div><strong>Types:</strong> <span id="types"></span></div>
-    <div><strong>Lore:</strong>
-      <ul id="flavors"></ul>
+    <div class="info-card lore">
+      <h3>Lore</h3>
+      <p id="lore-text"></p>
     </div>
-    <div class="details-grid">
-      <div><strong>Generation:</strong> <span id="generation"></span></div>
-      <div><strong>Introduced:</strong> <span id="year"></span></div>
-      <div><strong>Habitat:</strong> <span id="habitat"></span></div>
-      <div><strong>Capture Rate:</strong> <span id="capture"></span></div>
-      <div><strong>Happiness:</strong> <span id="happiness"></span></div>
+    <div class="info-card details">
+      <h3>Details</h3>
+      <ul id="details-list"></ul>
     </div>
-    <div><strong>Stats:</strong>
-      <div id="stats" class="stats-grid"></div>
+    <div class="info-card stats">
+      <h3>Base Stats</h3>
+      <ul id="stats-list"></ul>
     </div>
-    <div><strong>Moves:</strong>
-      <ul id="moves"></ul>
+    <div class="info-card moves">
+      <h3>Common Moves</h3>
+      <ul id="moves-list"></ul>
     </div>
-    <div><strong>Evolutions:</strong>
-      <ul id="evo"></ul>
+    <div class="info-card evolutions">
+      <h3>Evolutions</h3>
+      <ul id="evo-list"></ul>
     </div>
   </div>
 
@@ -210,42 +196,43 @@
     const maxId = 1010;
     let currentId = 1, pokemonList = [];
 
+    // Header/dropdown elements
     const headerContainer = document.getElementById('header-container');
-    const ribbon     = document.getElementById('ribbon');
-    const dropdown   = document.getElementById('dropdown');
-    const filterInput= document.getElementById('filterInput');
-    const pokeList   = document.getElementById('pokeList');
+    const ribbon         = document.getElementById('ribbon');
+    const dropdown       = document.getElementById('dropdown');
+    const filterInput    = document.getElementById('filterInput');
+    const pokeList       = document.getElementById('pokeList');
 
+    // Viewer elements
     const spriteWrap = document.getElementById('sprite');
     const frontImg   = document.getElementById('front');
     const backImg    = document.getElementById('back');
     const spinner    = document.getElementById('spinner');
 
-    const nameEl     = document.getElementById('name');
-    const typesEl    = document.getElementById('types');
-    const flavorsEl  = document.getElementById('flavors');
-    const generationEl = document.getElementById('generation');
-    const yearEl       = document.getElementById('year');
-    const habitatEl    = document.getElementById('habitat');
-    const captureEl    = document.getElementById('capture');
-    const happinessEl  = document.getElementById('happiness');
-    const statsEl      = document.getElementById('stats');
-    const movesEl      = document.getElementById('moves');
-    const evoEl        = document.getElementById('evo');
+    // Info elements
+    const loreText     = document.getElementById('lore-text');
+    const detailsList  = document.getElementById('details-list');
+    const statsList    = document.getElementById('stats-list');
+    const movesList    = document.getElementById('moves-list');
+    const evoList      = document.getElementById('evo-list');
 
-    document.getElementById('prev').onclick = () => loadPokemon(currentId = currentId>1?currentId-1:maxId);
-    document.getElementById('next').onclick = () => loadPokemon(currentId = currentId<maxId?currentId+1:1);
+    // Controls
+    document.getElementById('prev').onclick = () => loadPokemon(--currentId || (currentId = maxId));
+    document.getElementById('next').onclick = () => loadPokemon(currentId === maxId ? (currentId = 1) : ++currentId);
     document.getElementById('flip').onclick = () => spriteWrap.classList.toggle('flipped');
-    document.getElementById('random').onclick = () => loadPokemon(currentId = Math.floor(Math.random()*maxId)+1);
+    document.getElementById('random').onclick = () => loadPokemon(currentId = Math.floor(Math.random() * maxId) + 1);
 
-    ribbon.onclick = e => {
+    // Dropdown toggling
+    ribbon.addEventListener('click', e => {
       e.stopPropagation();
       headerContainer.classList.toggle('open');
-      if(headerContainer.classList.contains('open')) filterInput.focus();
-    };
+      filterInput.focus();
+    });
+    dropdown.addEventListener('click', e => e.stopPropagation());
     document.addEventListener('click', () => headerContainer.classList.remove('open'));
 
-    filterInput.oninput = () => {
+    // Live filter
+    filterInput.addEventListener('input', () => {
       const term = filterInput.value.toLowerCase();
       pokeList.innerHTML = '';
       pokemonList
@@ -253,125 +240,136 @@
         .forEach(p => {
           const li = document.createElement('li');
           li.textContent = `#${p.id} ${p.name}`;
-          li.onclick = () => { loadPokemon(currentId = p.id); headerContainer.classList.remove('open'); };
+          li.onclick = () => {
+            loadPokemon(currentId = p.id);
+            headerContainer.classList.remove('open');
+          };
           pokeList.appendChild(li);
         });
-    };
+    });
 
+    // Preload list of names & IDs
     async function preloadList(){
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
+      const res  = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${maxId}`);
       const data = await res.json();
-      pokemonList = data.results.map((p,i)=>({ name:p.name, id:i+1 }));
+      pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
       filterInput.dispatchEvent(new Event('input'));
     }
 
+    // Generation → release year map
     const genYearMap = {
-      'generation-i':   { name: 'Generation I',   year: 1996 },
-      'generation-ii':  { name: 'Generation II',  year: 1999 },
-      'generation-iii': { name: 'Generation III', year: 2002 },
-      'generation-iv':  { name: 'Generation IV',  year: 2006 },
-      'generation-v':   { name: 'Generation V',   year: 2010 },
-      'generation-vi':  { name: 'Generation VI',  year: 2013 },
-      'generation-vii':{ name: 'Generation VII', year: 2016 },
-      'generation-viii':{ name:'Generation VIII',year: 2019 },
-      'generation-ix':  { name: 'Generation IX',  year: 2022 }
+      'generation-i':  { name: 'Gen I',   year: 1996 },
+      'generation-ii': { name: 'Gen II',  year: 1999 },
+      'generation-iii':{ name: 'Gen III', year: 2002 },
+      'generation-iv': { name: 'Gen IV',  year: 2006 },
+      'generation-v':  { name: 'Gen V',   year: 2010 },
+      'generation-vi': { name: 'Gen VI',  year: 2013 },
+      'generation-vii':{ name:'Gen VII', year: 2016 },
+      'generation-viii':{name:'Gen VIII',year: 2019},
+      'generation-ix': { name: 'Gen IX',  year: 2022 }
     };
 
+    // Main loader
     async function loadPokemon(id){
       spinner.style.display = 'block';
-      ribbon.childNodes[0].nodeValue = 'Loading… ';
+      ribbon.firstChild.nodeValue = 'Loading… ';
       spriteWrap.classList.remove('flipped');
 
       try {
         const p  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
         const sp = await fetch(p.species.url).then(r=>r.json());
+
+        // Sprites & title
         frontImg.src = p.sprites.front_default || '';
         backImg.src  = p.sprites.back_default  || '';
-        ribbon.childNodes[0].nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
+        ribbon.firstChild.nodeValue = `#${p.id} — ${p.name.toUpperCase()} `;
 
+        // Lore (single concise entry)
+        const entry = sp.flavor_text_entries.find(e=>e.language.name==='en');
+        loreText.textContent = entry
+          ? entry.flavor_text.replace(/[\n\f]/g,' ')
+          : 'No lore available.';
+
+        // Details
+        detailsList.innerHTML = '';
         // Types
-        typesEl.innerHTML = '';
-        p.types.forEach(t=>{
-          const s = document.createElement('span');
-          s.style.background = typeColor(t.type.name);
-          s.textContent = t.type.name;
-          typesEl.appendChild(s);
+        const typesLi = document.createElement('li');
+        typesLi.innerHTML = '<strong>Types:</strong> ';
+        p.types.forEach(t => {
+          const span = document.createElement('span');
+          span.style.background = typeColor(t.type.name);
+          span.textContent = t.type.name;
+          span.style.color = '#fff';
+          span.style.padding = '2px 6px';
+          span.style.marginRight = '4px';
+          span.style.borderRadius = '2px';
+          typesLi.appendChild(span);
         });
-
-        // Lore (up to 3 unique entries)
-        const seen = new Set();
-        flavorsEl.innerHTML = '';
-        sp.flavor_text_entries
-          .filter(e=>e.language.name==='en')
-          .slice(0, 10)
-          .forEach(e=>{
-            const txt = e.flavor_text.replace(/[\n\f]/g,' ');
-            if (!seen.has(txt)){
-              seen.add(txt);
-              const li = document.createElement('li');
-              li.textContent = txt;
-              flavorsEl.appendChild(li);
-            }
-            if (seen.size>=3) return;
-          });
-
+        detailsList.appendChild(typesLi);
         // Generation & year
-        const genKey = sp.generation.name;
-        const genData= genYearMap[genKey] || {name:genKey, year:'?'};
-        generationEl.textContent = genData.name;
-        yearEl.textContent       = genData.year;
-
-        // Habitat / capture / happiness
-        habitatEl.textContent    = sp.habitat?.name || 'Unknown';
-        captureEl.textContent    = sp.capture_rate;
-        happinessEl.textContent  = sp.base_happiness;
+        const genData = genYearMap[sp.generation.name] || { name: sp.generation.name, year: '?' };
+        const genLi = document.createElement('li');
+        genLi.innerHTML = `<strong>Generation:</strong> ${genData.name} (${genData.year})`;
+        detailsList.appendChild(genLi);
+        // Habitat
+        const habLi = document.createElement('li');
+        habLi.innerHTML = `<strong>Habitat:</strong> ${sp.habitat?.name || 'Unknown'}`;
+        detailsList.appendChild(habLi);
+        // Capture rate
+        const capLi = document.createElement('li');
+        capLi.innerHTML = `<strong>Capture Rate:</strong> ${sp.capture_rate}`;
+        detailsList.appendChild(capLi);
+        // Base happiness
+        const hapLi = document.createElement('li');
+        hapLi.innerHTML = `<strong>Happiness:</strong> ${sp.base_happiness}`;
+        detailsList.appendChild(hapLi);
 
         // Stats
-        statsEl.innerHTML = '';
-        p.stats.forEach(s=>{
-          const d = document.createElement('div');
-          d.textContent = `${s.stat.name}: ${s.base_stat}`;
-          statsEl.appendChild(d);
+        statsList.innerHTML = '';
+        p.stats.forEach(s => {
+          const li = document.createElement('li');
+          li.textContent = `${s.stat.name}: ${s.base_stat}`;
+          statsList.appendChild(li);
         });
 
         // Moves
-        movesEl.innerHTML = '';
-        p.moves.slice(0,5).forEach(m=>{
+        movesList.innerHTML = '';
+        p.moves.slice(0,5).forEach(m => {
           const li = document.createElement('li');
           li.textContent = m.move.name;
-          movesEl.appendChild(li);
+          movesList.appendChild(li);
         });
 
         // Evolutions
-        evoEl.innerHTML = '';
+        evoList.innerHTML = '';
         const chain = await fetch(sp.evolution_chain.url).then(r=>r.json());
         (function walk(node){
           const li = document.createElement('li');
           li.textContent = node.species.name;
-          evoEl.appendChild(li);
+          evoList.appendChild(li);
           node.evolves_to.forEach(walk);
         })(chain.chain);
 
       } catch {
-        ribbon.childNodes[0].nodeValue = 'Error loading.';
+        ribbon.firstChild.nodeValue = 'Error loading.';
       } finally {
         spinner.style.display = 'none';
       }
     }
 
-    preloadList();
-    loadPokemon(currentId);
-
+    // Color map
     function typeColor(type){
-      const c = {
+      return ({
         fire:'#f08030', water:'#6890f0', grass:'#78c850', electric:'#f8d030',
         ice:'#98d8d8', fighting:'#c03028', poison:'#a040a0', ground:'#e0c068',
         flying:'#a890f0', psychic:'#f85888', bug:'#a8b820', rock:'#b8a038',
         ghost:'#705898', dragon:'#7038f8', dark:'#705848', steel:'#b8b8d0',
         fairy:'#ee99ac', normal:'#a8a878'
-      };
-      return c[type]||'#888';
+      }[type] || '#888');
     }
+
+    preloadList();
+    loadPokemon(currentId);
   })();
   </script>
 </body>
