@@ -23,6 +23,45 @@
       font-size: 0.75rem;
       border-bottom: 4px solid #8b0000;
       box-shadow: 0 4px 0 #8b0000;
+      cursor: pointer;
+      position: relative;
+    }
+
+    #dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #fff;
+      z-index: 20;
+      border: 2px solid #8b0000;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+    }
+
+    #dropdown input {
+      width: 96%;
+      margin: 0.5rem;
+      padding: 0.4rem;
+      font-size: 1rem;
+    }
+
+    #dropdown ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #dropdown li {
+      padding: 0.4rem;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+
+    #dropdown li:hover {
+      background: #eee;
     }
 
     #viewer {
@@ -32,7 +71,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
 
     #sprite-container {
@@ -88,6 +126,21 @@
       align-items: center;
       padding: 0.5rem;
       flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    button {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 0.6rem;
+      padding: 0.6rem 0.8rem;
+      background: #fdfdfd;
+      border: 2px solid #555;
+      box-shadow: 2px 2px 0 #000;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ffcccb;
     }
 
     #info {
@@ -111,21 +164,16 @@
       text-transform: uppercase;
       font-size: 0.75rem;
     }
-
-    button {
-      font-family: 'Press Start 2P', cursive;
-      font-size: 0.6rem;
-      padding: 0.4rem;
-    }
-
-    input[type="file"], input[type="range"] {
-      font-family: sans-serif;
-    }
   </style>
 </head>
 <body>
 
-  <div id="ribbon">Loading Pokédex Entry...</div>
+  <div id="ribbon">Loading Pokédex Entry...
+    <div id="dropdown">
+      <input type="text" placeholder="Search Pokémon..." id="filterInput">
+      <ul id="pokeList"></ul>
+    </div>
+  </div>
 
   <div id="viewer">
     <div id="spinner"></div>
@@ -141,6 +189,7 @@
     <button id="prev">◀️ Prev</button>
     <button id="flip">🔄 Flip</button>
     <button id="next">Next ▶️</button>
+    <button id="random">❓ Random</button>
     <input type="file" id="upload" accept="image/*">
   </div>
 
@@ -157,11 +206,16 @@
     (function(){
       let currentId = 1;
       const maxId = 1010;
+      let pokemonList = [];
 
+      const ribbon = document.getElementById('ribbon');
+      const dropdown = document.getElementById('dropdown');
+      const pokeList = document.getElementById('pokeList');
+      const filterInput = document.getElementById('filterInput');
+
+      const spriteWrapper = document.getElementById('sprite');
       const frontImg = document.getElementById('front');
       const backImg = document.getElementById('back');
-      const spriteWrapper = document.getElementById('sprite');
-      const ribbon = document.getElementById('ribbon');
       const spinner = document.getElementById('spinner');
 
       const nameEl = document.getElementById('name');
@@ -182,7 +236,10 @@
       document.getElementById('flip').onclick = () => {
         spriteWrapper.classList.toggle('flipped');
       };
-
+      document.getElementById('random').onclick = () => {
+        currentId = Math.floor(Math.random() * maxId) + 1;
+        loadPokemon(currentId);
+      };
       document.getElementById('upload').onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
@@ -190,6 +247,34 @@
         frontImg.src = url;
         backImg.src = '';
       };
+
+      ribbon.onclick = () => {
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+      };
+
+      filterInput.oninput = () => {
+        const term = filterInput.value.toLowerCase();
+        pokeList.innerHTML = '';
+        pokemonList
+          .filter(p => p.name.includes(term) || p.id.toString().includes(term))
+          .forEach(p => {
+            const li = document.createElement('li');
+            li.textContent = `#${p.id} ${p.name}`;
+            li.onclick = () => {
+              currentId = p.id;
+              dropdown.style.display = 'none';
+              loadPokemon(currentId);
+            };
+            pokeList.appendChild(li);
+          });
+      };
+
+      async function preloadList() {
+        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1010');
+        const data = await res.json();
+        pokemonList = data.results.map((p, i) => ({ name: p.name, id: i + 1 }));
+        filterInput.dispatchEvent(new Event('input')); // Fill list
+      }
 
       async function loadPokemon(id){
         spinner.style.display = 'block';
@@ -200,14 +285,10 @@
           const p = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`).then(r=>r.json());
           const sp = await fetch(p.species.url).then(r=>r.json());
 
-          // Sprites
           frontImg.src = p.sprites.front_default || '';
           backImg.src = p.sprites.back_default || '';
-
-          // Ribbon
           ribbon.textContent = `#${p.id} — ${p.name.toUpperCase()}`;
 
-          // Types
           typesEl.innerHTML = '';
           p.types.forEach(t => {
             const span = document.createElement('span');
@@ -216,14 +297,11 @@
             typesEl.appendChild(span);
           });
 
-          // Flavor Text
           const entry = sp.flavor_text_entries.find(e => e.language.name === 'en');
           flavorEl.textContent = entry ? entry.flavor_text.replace(/[\n\f]/g, ' ') : 'No description.';
 
-          // Stats
           statsEl.textContent = p.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(' | ');
 
-          // Moves
           movesEl.innerHTML = '';
           p.moves.slice(0, 5).forEach(m => {
             const li = document.createElement('li');
@@ -231,7 +309,6 @@
             movesEl.appendChild(li);
           });
 
-          // Evolutions
           evoEl.innerHTML = '';
           const chain = await fetch(sp.evolution_chain.url).then(r => r.json());
           (function walk(node){
@@ -260,6 +337,7 @@
         return colors[type] || '#888';
       }
 
+      preloadList();
       loadPokemon(currentId);
     })();
   </script>
